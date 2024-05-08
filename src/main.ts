@@ -4,13 +4,20 @@ import { ValidationPipe } from '@nestjs/common';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { json } from 'express';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { CORS } from './constants';
+import * as morgan from 'morgan';
+
 
 async function bootstrap() {
   const PORT = process.env.PORT || 3000;
 
-  const app = await NestFactory.create<NestExpressApplication>(AppModule, { cors: true }); // Cors para que se pueda acceder desde cualquier lado
-
+  const app = await NestFactory.create<NestExpressApplication>(AppModule);
+  
   app.use(json({ limit: '500mb' })); // Tamaño máximo de los datos
+
+  app.use(morgan('dev'));
+
+  app.enableCors(CORS);
 
   app.setGlobalPrefix("api/v1");
 
@@ -27,7 +34,8 @@ async function bootstrap() {
     .addBearerAuth()
     .setTitle('HealTrack API')
     .setDescription('Esta es la api de HealTrack')
-    .addTag('users')
+    .addTag('patients')
+    .addTag('employees')
     .addTag('auth')
     .build();
 
@@ -35,5 +43,7 @@ async function bootstrap() {
   SwaggerModule.setup('api', app, document); // Documentación
 
   await app.listen(PORT);
+
+  console.log(`Server running on port ${PORT}`);
 }
 bootstrap();
