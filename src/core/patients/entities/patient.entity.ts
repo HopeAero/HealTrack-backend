@@ -31,7 +31,7 @@ export class Patient {
   age: number;
 
   @ApiProperty()
-  @Column({ nullable: true })
+  @Column({default: '', nullable: true})
   address: string;
 
   @ApiProperty()
@@ -39,7 +39,7 @@ export class Patient {
   personalPhone: string;
 
   @ApiProperty()
-  @Column({ unique: true })
+  @Column({default: '', nullable: true, unique: true})
   homePhone: string;
 
   @ApiProperty()
