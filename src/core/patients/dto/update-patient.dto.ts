@@ -1,8 +1,9 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsOptional, IsString, IsNumber, IsEnum, MinLength, MaxLength, Matches } from 'class-validator';
+import { IsOptional, IsString, IsNumber, IsEnum, MinLength, MaxLength, Matches, IsNumberString, IsEmail } from 'class-validator';
 import { Type } from 'class-transformer';
 import { Hospital } from '@src/core/employees/entities/hospital.entity';
 import { SurgeryType } from '@src/constants/surgery/type';
+import { isUniqueDb } from '@youba/nestjs-dbvalidator';
 
 export class UpdatePatientDto {
     
@@ -30,17 +31,21 @@ export class UpdatePatientDto {
 
     @ApiProperty({ example: "1234567890", required: false })
     @IsOptional()
-    @IsString()
+    @IsNumberString()
     personalPhone: string;
 
     @ApiProperty({ example: "0987654321", required: false })
     @IsOptional()
-    @IsString()
+    @IsNumberString()
     homePhone: string;
 
     @ApiProperty({ example: "admin@gmail.com", required: false })
-    @IsOptional()
-    @IsString()
+    @isUniqueDb({
+        table: 'patient',
+        column: 'email',
+        message: 'El correo ya existe',
+        })
+    @IsEmail()
     email: string;
 
     @ApiProperty({ example: "V123456789", required: false })

@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsString, IsNumber, IsBoolean, IsDate, IsEnum, IsDateString, IsNotEmpty, IsDefined, MinLength, MaxLength, IsEmail, IsOptional, IsPhoneNumber, Matches, ValidateNested } from 'class-validator';
+import { IsString, IsNumber, IsBoolean, IsDate, IsEnum, IsDateString, IsNotEmpty, IsDefined, MinLength, MaxLength, IsEmail, IsOptional, IsPhoneNumber, Matches, ValidateNested, IsNumberString } from 'class-validator';
 import { Type } from 'class-transformer';
 import { Hospital } from '@src/core/employees/entities/hospital.entity';
 import { SurgeryType } from '@src/constants/surgery/type';
@@ -26,29 +26,19 @@ export class CreatePatientDto {
     @IsNumber()
     age: number;
 
-    @ApiProperty({example:'El culo de pzo', required: false })
+    @ApiProperty({example: "El culo de pzo", required: false })
     @IsOptional()
     @IsString()
     address: string;
 
     @ApiProperty({ example: "1234567890", required: true})
     @IsNotEmpty()
-    @isUniqueDb({
-        table: 'patient',
-        column: 'personalPhone',
-        message: 'El nro de teléfono personal ya existe',
-    })
-    @IsPhoneNumber()
+    @IsNumberString()
     personalPhone: string;
 
     @ApiProperty({ example: "0987654321", required: true})
     @IsNotEmpty()
-    @isUniqueDb({
-    table: 'patient',
-    column: 'homePhone',
-    message: 'El nro de teléfono ya existe',
-    })
-    @IsPhoneNumber()
+    @IsNumberString()
     homePhone: string;
 
     @ApiProperty({ example: "admin@gmail.com", required: true })

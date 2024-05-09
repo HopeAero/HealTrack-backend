@@ -14,8 +14,7 @@ export class EmployeesService {
   ) {
   }
   async create(createEmployeeDto: CreateEmployeeDto) {
-    const employee = await this.employeeRepository.create(createEmployeeDto);
-    createEmployeeDto.password = await bcryptjs.hash(createEmployeeDto.password, 10);
+    let employee = await this.employeeRepository.create({...createEmployeeDto, password: await bcryptjs.hash(createEmployeeDto.password, 10)});
     await this.employeeRepository.save(employee);
     return employee;
   }
