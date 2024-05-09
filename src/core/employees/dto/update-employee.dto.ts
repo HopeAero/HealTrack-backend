@@ -1,7 +1,8 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { isUniqueDb } from "@youba/nestjs-dbvalidator";
-import { IsEmail, IsEnum, IsIn, IsOptional, IsString } from "class-validator";
+import { IsEmail, IsEnum, IsIn, IsJSON, IsOptional, IsString } from "class-validator";
 import { EmployeeRole } from "src/constants";
+import { Hospital } from "../entities/hospital.entity";
 
 export class UpdateEmployeeDto {
     
@@ -32,6 +33,11 @@ export class UpdateEmployeeDto {
 
     @IsOptional()
     isVerify: boolean;
+
+    @ApiProperty({ example: { id: 'ac3d858c-dc04-4d18-9cf6-23cf06db922f' , name: "Hospital"}, required: true })
+    @IsJSON()
+    @IsOptional()
+    hospital: Hospital;
     
     @ApiProperty({ enum: EmployeeRole, example: EmployeeRole.ADMIN})
     @IsEnum(EmployeeRole, { message: 'Rol invalido' })

@@ -28,7 +28,7 @@ export class EmployeesService {
     const found = await this.employeeRepository.findOne({ where: { id } });
 
     if (!found) {
-      throw new NotFoundException(`Employee with ID "${id}" not found`);
+      throw new NotFoundException(`Empleado con el ID ${id} no fue encontrado`);
     }
 
     return found;
@@ -36,16 +36,23 @@ export class EmployeesService {
 
   async update(id: number, updateEmployeeDto: UpdateEmployeeDto) {
     const employee = await this.findOne(id);
-    const updatedEmployee = await this.employeeRepository.save({
-      ...employee,
-      ...updateEmployeeDto,
-    });
+
+    if (!employee) {
+      throw new NotFoundException(`Empleado con el ID ${id} no fue encontrado`);
+    }
+
+    const updatedEmployee = await this.employeeRepository.update(id, updateEmployeeDto);
 
     return updatedEmployee;
   }
 
   async remove(id: number) {
     const employee = await this.findOne(id);
-    await this.employeeRepository.softDelete(employee);
+
+    if (!employee) {
+      throw new NotFoundException(`Empleado con el ID ${id} no fue encontrado`);
+    }
+
+    await this.employeeRepository.softDelete(id);
   }
 }
