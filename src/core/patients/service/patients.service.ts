@@ -32,7 +32,7 @@ export class PatientsService {
       throw new NotFoundException('No se encontro el medico con el id proporcionado');
     }
 
-    const patient = this.patientRepository.create({...createPatientDto, password: await bcryptjs.hash(createPatientDto.password, 10)});
+    const patient = this.patientRepository.create({...createPatientDto, password: await bcryptjs.hash(createPatientDto.password, 10), medic: employee});
 
 
     await this.patientRepository.save(patient);
