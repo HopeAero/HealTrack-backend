@@ -82,7 +82,7 @@ export class AuthService {
 
     await this.employeeService.create({
         email,
-        password: await bcryptjs.hash(password, 10),
+        password,
         name,
         hospital,
         identification,
@@ -105,10 +105,7 @@ async registerPatient(createPatientDto: CreatePatientDto) {
       throw new BadRequestException('User already exists');
     }
 
-    await this.patientService.create({
-      ...createPatientDto,
-      password: await bcryptjs.hash(createPatientDto.password, 10),
-    });
+    await this.patientService.create(createPatientDto);
 
     return {
       email: createPatientDto.email,
