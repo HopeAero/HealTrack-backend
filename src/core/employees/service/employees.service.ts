@@ -80,7 +80,8 @@ export class EmployeesService {
     const employee = await this.employeeRepository.findOne({
       where: {
         email
-      }
+      },
+      select: ['id', 'email', 'password']
     })
 
     return employee

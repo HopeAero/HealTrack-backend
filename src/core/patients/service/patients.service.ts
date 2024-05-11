@@ -150,7 +150,8 @@ export class PatientsService {
     const patient = await this.patientRepository.findOne({
       where: {
         email 
-      }
+      },
+      select: ['id', 'email', 'password']
     });
 
     if (!patient) {
