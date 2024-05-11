@@ -59,7 +59,7 @@ export class Patient {
   password: string;
 
   @ApiProperty()
-  @Column('bool', { default: false })
+  @Column('bool', { default: false , select: false})
   isVerify: boolean;
 
   @ApiProperty()

@@ -7,6 +7,7 @@ import { EmployeesModule } from '@core/employees/employees.module';
 import { Employee } from '@core/employees/entities/employee.entity';
 import { DbValidatorsModule } from '@youba/nestjs-dbvalidator';
 import { envData } from '@src/config/typeorm';
+import { EmployeesService } from '../employees/service/employees.service';
 
 @Module({
   imports: [
@@ -18,10 +19,15 @@ import { envData } from '@src/config/typeorm';
       password: envData.DATABASE_PASSWORD,
       database: envData.DATABASE_NAME,
     }),
-    EmployeesModule,
     TypeOrmModule.forFeature([Patient, Employee]),
   ],
   controllers: [PatientsController],
-  providers: [PatientsService],
+  providers: [
+    PatientsService,
+    EmployeesService,
+  ],
+  exports: [
+    PatientsService,
+  ],
 })
 export class PatientsModule {}

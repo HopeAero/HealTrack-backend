@@ -37,7 +37,7 @@ export class Employee {
   password: string;
 
   @ApiProperty({ example: true })
-  @Column('bool', { default: false })
+  @Column('bool', { default: false, select: false})
   isVerify: boolean;
 
   @ApiProperty({ type: () => Hospital })

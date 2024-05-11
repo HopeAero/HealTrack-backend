@@ -5,15 +5,29 @@ import { Employee } from '../entities/employee.entity';
 import { Repository } from 'typeorm';
 import * as bcryptjs from 'bcryptjs';
 import { InjectRepository } from '@nestjs/typeorm';
+import { PatientsService } from '@src/core/patients/service/patients.service';
+import { Patient } from '@src/core/patients/entities/patient.entity';
 
 @Injectable()
 export class EmployeesService {
   constructor(
     @InjectRepository(Employee) 
-    private readonly employeeRepository: Repository<Employee>
+    private readonly employeeRepository: Repository<Employee>,
+
+    @InjectRepository(Patient)
+    private readonly patientRepository: Repository<Patient>,
+    
   ) {
   }
   async create(createEmployeeDto: CreateEmployeeDto) {
+
+    const exists = await this.getByIdentification(createEmployeeDto.identification);
+    const exist2 = await this.patientRepository.findOne({where: {identification: createEmployeeDto.identification}});
+    
+    if (exists || exist2) {
+      throw new NotFoundException('Ya existe una persona con esta identificacion');
+    }
+
     let employee = await this.employeeRepository.create({...createEmployeeDto, password: await bcryptjs.hash(createEmployeeDto.password, 10)});
     await this.employeeRepository.save(employee);
     return employee;
@@ -36,6 +50,13 @@ export class EmployeesService {
   async update(id: number, updateEmployeeDto: UpdateEmployeeDto) {
     const employee = await this.findOne(id);
 
+    const exist1 = await this.getByIdentification(updateEmployeeDto.identification);
+    const exist2 = await this.patientRepository.findOne({where: {identification: updateEmployeeDto.identification}});
+
+    if (exist1 || exist2) {
+      throw new NotFoundException('Ya existe una persona con esta identificacion');
+    }
+
     if (!employee) {
       throw new NotFoundException(`Empleado con el ID ${id} no fue encontrado`);
     }
@@ -54,4 +75,26 @@ export class EmployeesService {
 
     await this.employeeRepository.softDelete(id);
   }
+
+  async getByEmail(email: string) {
+    const employee = await this.employeeRepository.findOne({
+      where: {
+        email
+      },
+      select: ['id', 'email', 'password']
+    })
+
+    return employee
+  }
+
+  async getByIdentification(identification: string) {
+    const employee = await this.employeeRepository.findOne({
+      where: {
+        identification
+      }
+    })
+
+    return employee
+  }
+
 }
