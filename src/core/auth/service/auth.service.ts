@@ -4,9 +4,8 @@ import { EmployeesService } from '@core/employees/service/employees.service';
 import { PatientsService } from '@core/patients/service/patients.service';
 import { LoginDto } from '../dto/login.dto';
 import * as bcryptjs from 'bcryptjs';
-import { JwtPayloadService } from '@src/common/service/jwt.payload.service';
 import { CreateEmployeeDto } from '@src/core/employees/dto/create-employee.dto';
-import { AllRole, EmployeeRole } from '@src/constants';
+import { AllRole } from '@src/constants';
 import { CreatePatientDto } from '@src/core/patients/dto/create-patient.dto';
 
 
