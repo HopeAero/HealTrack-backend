@@ -3,7 +3,7 @@ import { isUniqueDb } from "@youba/nestjs-dbvalidator";
 import { IsEmail, IsEnum, IsIn, IsJSON, IsOptional, IsString, ValidateNested } from "class-validator";
 import { EmployeeRole } from "src/constants";
 import { Hospital } from "../entities/hospital.entity";
-import { Type } from "@nestjs/common";
+import { Type } from 'class-transformer';
 
 export class UpdateEmployeeDto {
     
