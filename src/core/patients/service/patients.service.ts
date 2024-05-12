@@ -111,6 +111,19 @@ export class PatientsService {
       }
     }
 
+  if (updatePatientDto.email) {
+    const exists = await this.patientRepository.findOne({
+      where: {
+        email: updatePatientDto.email
+      }
+    });
+    
+    if (exists) {
+      throw new BadRequestException('Ya existe un paciente con este correo');
+    }
+  }
+    
+
     const updatedPatient = await this.patientRepository.update(id, updatePatientDto);
 
     return updatedPatient;

@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsOptional, IsString, IsNumber, IsEnum, MinLength, MaxLength, Matches, IsNumberString, IsEmail } from 'class-validator';
+import { IsOptional, IsString, IsNumber, IsEnum, MinLength, MaxLength, Matches, IsNumberString, IsEmail, ValidateNested } from 'class-validator';
 import { Type } from 'class-transformer';
 import { Hospital } from '@src/core/employees/entities/hospital.entity';
 import { SurgeryType } from '@src/constants/surgery/type';
@@ -40,11 +40,6 @@ export class UpdatePatientDto {
     homePhone: string;
 
     @ApiProperty({ example: "admin@gmail.com", required: false })
-    @isUniqueDb({
-        table: 'patient',
-        column: 'email',
-        message: 'El correo ya existe',
-        })
     @IsEmail()
     email: string;
 
@@ -58,6 +53,7 @@ export class UpdatePatientDto {
     @ApiProperty({ type: () => Hospital, required: false })
     @IsOptional()
     @Type(() => Hospital)
+    @ValidateNested()
     hospital: Hospital;
 
     @ApiProperty({ example: "S@lcedo2001", required: false  })
