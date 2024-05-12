@@ -47,7 +47,7 @@ export class Patient {
   email: string;
 
   @ApiProperty()
-  @Column({ unique: true, nullable: false, select: false })
+  @Column({ unique: true, nullable: false})
   identification: string;
 
   @ApiProperty({ type: () => Hospital })

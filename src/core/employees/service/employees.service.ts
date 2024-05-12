@@ -52,6 +52,11 @@ export class EmployeesService {
 
     const exist1 = await this.getByIdentification(updateEmployeeDto.identification);
     const exist2 = await this.patientRepository.findOne({where: {identification: updateEmployeeDto.identification}});
+    const exist3 = await this.employeeRepository.findOne({
+      where: {
+        email: updateEmployeeDto.email
+      }
+    });
 
     if (exist1 || exist2) {
       throw new NotFoundException('Ya existe una persona con esta identificacion');
@@ -59,6 +64,10 @@ export class EmployeesService {
 
     if (!employee) {
       throw new NotFoundException(`Empleado con el ID ${id} no fue encontrado`);
+    }
+
+    if (exist3 && exist3.id !== id) {
+      throw new NotFoundException('Ya existe una persona con este correo');
     }
 
     const updatedEmployee = await this.employeeRepository.update(id, updateEmployeeDto);

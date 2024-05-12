@@ -30,7 +30,7 @@ export class Employee {
   email: string;
 
   @ApiProperty()
-  @Column({ unique: true, nullable: false, select: false })
+  @Column({ unique: true, nullable: false})
   identification: string;
 
   @Column({ nullable: false, select: false })
