@@ -118,7 +118,7 @@ export class PatientsService {
       }
     });
     
-    if (exists) {
+    if (exists && exists.id !== id) {
       throw new BadRequestException('Ya existe un paciente con este correo');
     }
   }
