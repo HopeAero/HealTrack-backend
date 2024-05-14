@@ -21,6 +21,7 @@ import { UsersModule } from "./core/users/users.module";
     }),
     UsersModule,
     PatientsModule,
+    AuthModule,
     EmployeesModule,
   ],
   controllers: [AppController],

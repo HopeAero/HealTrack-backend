@@ -21,32 +21,10 @@ export class AuthService {
     private readonly jwtService: JwtService,
   ) {}
 
-  async loginPatient({ email, password }: LoginDto) {
+  async login({ email, password }: LoginDto) {
     const user = await this.userService.getByEmail(email);
 
-    if (!user) {
-      throw new UnauthorizedException("correo no encontrado");
-    }
-
-    const isPasswordValid = await bcryptjs.compare(password, user.password);
-
-    if (!isPasswordValid) {
-      throw new UnauthorizedException("contraseña incorrecta");
-    }
-
-    const payload = { email: user.email, id: user.id, role: "patient" };
-    const token = await this.jwtService.signAsync(payload, { secret: process.env.JWT_SECRET });
-
-    return {
-      token,
-      email,
-      id: user.id,
-      role: "patient",
-    };
-  }
-
-  async loginEmployee({ email, password }: LoginDto) {
-    const user = await this.userService.getByEmail(email);
+    console.log(user);
 
     if (!user) {
       throw new UnauthorizedException("correo no encontrado");
@@ -66,6 +44,52 @@ export class AuthService {
       email,
       id: user.id,
       role: user.role,
+    };
+  }
+
+  async registerPatient(createPatientDto: CreatePatientDto) {
+    const user = await this.userService.getByEmail(createPatientDto.user.email);
+
+    if (user) {
+      throw new BadRequestException("correo ya registrado");
+    }
+
+    const password = await bcryptjs.hash(createPatientDto.user.password, 10);
+
+    const patient = await this.patientService.create({
+      ...createPatientDto,
+      user: { ...createPatientDto.user, password, role: AllRole.PATIENT },
+    });
+
+    return {
+      email: patient.email,
+      name: patient.name,
+      lastname: patient.lastname,
+      id: patient.id,
+      role: AllRole.PATIENT,
+    };
+  }
+
+  async registerEmployee(createEmployeeDto: CreateEmployeeDto) {
+    const user = await this.userService.getByEmail(createEmployeeDto.user.email);
+
+    if (user) {
+      throw new BadRequestException("correo ya registrado");
+    }
+
+    const password = await bcryptjs.hash(createEmployeeDto.user.password, 10);
+
+    const employee = await this.employeeService.create({
+      ...createEmployeeDto,
+      user: { ...createEmployeeDto.user, password },
+    });
+
+    return {
+      email: employee.email,
+      name: employee.name,
+      lastname: employee.lastname,
+      id: employee.id,
+      role: employee.role,
     };
   }
 }

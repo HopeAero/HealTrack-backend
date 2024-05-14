@@ -10,19 +10,18 @@ import { CreateEmployeeDto } from "../employees/dto/create-employee.dto";
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
-  @Post("login/patient")
-  loginPatient(@Body() loginDto: LoginDto) {
-    return this.authService.loginPatient(loginDto);
-  }
-
-  @Post("login/employee")
-  loginEmployee(@Body() loginDto: LoginDto) {
-    return this.authService.loginEmployee(loginDto);
+  @Post("login")
+  async login(@Body() loginDto: LoginDto) {
+    return this.authService.login(loginDto);
   }
 
   @Post("register/patient")
-  registerPatient(@Body() createPatientDto: CreatePatientDto) {}
+  async registerPatient(@Body() createPatientDto: CreatePatientDto) {
+    return this.authService.registerPatient(createPatientDto);
+  }
 
   @Post("register/employee")
-  registerEmployee(@Body() createEmployeeDto: CreateEmployeeDto) {}
+  async registerEmployee(@Body() createEmployeeDto: CreateEmployeeDto) {
+    return this.authService.registerEmployee(createEmployeeDto);
+  }
 }
