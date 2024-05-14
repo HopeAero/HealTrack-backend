@@ -8,8 +8,8 @@ import {
 } from "@nestjs/websockets";
 import { Logger } from "@nestjs/common";
 import { Server, Socket } from "socket.io";
-import { AddMessageDto } from "./dto/addMessage.dto";
 import { CORS } from "@src/constants";
+import { AddMessageDto } from "./dto/addMessage.dto";
 
 @WebSocketGateway({ cors: CORS })
 export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {

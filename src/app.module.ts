@@ -8,7 +8,7 @@ import { EmployeesModule } from "./core/employees/employees.module";
 import { PatientsModule } from "./core/patients/patients.module";
 import { AuthModule } from "./core/auth/auth.module";
 import { UsersModule } from "./core/users/users.module";
-import { ChatGateway } from "./core/chat/chat.gateway";
+import { ChatGateway } from "./core/chats/chat.gateway";
 
 @Module({
   imports: [
