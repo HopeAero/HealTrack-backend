@@ -6,20 +6,18 @@ import {
   Column,
   CreateDateColumn,
   DeleteDateColumn,
+  Entity,
   JoinColumn,
   OneToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from "typeorm";
 
+@Entity()
 export class User {
   @ApiProperty()
   @PrimaryGeneratedColumn("increment")
   id: number;
-
-  @OneToOne(() => Patient, (patient) => patient.user)
-  @JoinColumn()
-  patient: Patient;
 
   @OneToOne(() => Employee, (employee) => employee.user)
   @JoinColumn()
@@ -38,7 +36,7 @@ export class User {
   password: string;
 
   @ApiProperty()
-  @Column()
+  @Column({ unique: true, nullable: false })
   email: string;
 
   @ApiProperty()

@@ -3,8 +3,6 @@ import { StatusPatient } from "@src/constants/status/statusPatient";
 import { SurgeryType } from "@src/constants/surgery/type";
 import { Employee } from "@src/core/employees/entities/employee.entity";
 import { Hospital } from "@src/core/employees/entities/hospital.entity";
-import { User } from "@src/core/users/entities/user.entity";
-
 import { Column, DeleteDateColumn, Entity, JoinColumn, ManyToOne, OneToOne, PrimaryGeneratedColumn } from "typeorm";
 
 @Entity()
@@ -12,10 +10,6 @@ export class Patient {
   @ApiProperty()
   @PrimaryGeneratedColumn("increment")
   id: number;
-
-  @ApiProperty()
-  @OneToOne(() => User, (user) => user.patient)
-  user: User;
 
   @ApiProperty()
   @Column()

@@ -8,6 +8,7 @@ import {
   IsNotEmpty,
   IsEmail,
   IsEnum,
+  Validate,
 } from "class-validator";
 import { AllRole } from "src/constants";
 import { isUniqueDb } from "@youba/nestjs-dbvalidator";
@@ -31,21 +32,13 @@ export class CreateUserDto {
 
   @ApiProperty({ example: "admin@gmail.com", required: true })
   @IsNotEmpty()
-  @isUniqueDb({
-    table: "user",
-    column: "email",
-    message: "El correo ya existe",
-  })
+  @Validate(isUniqueDb, ["user", "email", "El correo ya existe"])
   @IsEmail()
   email: string;
 
   @ApiProperty({ example: "V30109748", required: true })
   @IsNotEmpty()
-  @isUniqueDb({
-    table: "user",
-    column: "identification",
-    message: "La identificación ya existe",
-  })
+  @Validate(isUniqueDb, ["user", "identification", "La cédula ya existe"])
   @IsString()
   @MinLength(8)
   @MaxLength(20)
@@ -62,16 +55,14 @@ export class CreateUserDto {
   })
   password: string;
 
-  @ApiProperty({ enum: AllRole, example: AllRole.PATIENT })
+  @ApiProperty({ example: AllRole.PATIENT, required: true })
   @IsOptional()
   @IsEnum(AllRole, { message: "Rol invalido" })
   role: AllRole;
 
-  @ApiProperty({ type: () => Employee })
   @IsOptional()
   employee: Employee;
 
-  @ApiProperty({ type: () => Patient })
   @IsOptional()
   patient: Patient;
 }

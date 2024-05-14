@@ -1,63 +1,52 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
-import { CreatePatientDto } from '../dto/create-patient.dto';
-import { UpdatePatientDto } from '../dto/update-patient.dto';
-import { Patient } from '../entities/patient.entity';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import * as bcryptjs from 'bcryptjs';
-import { Employee } from '@src/core/employees/entities/employee.entity';
-import { EmployeeRole } from '@src/constants';
-import { EmployeesService } from '@src/core/employees/service/employees.service';
-
+import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
+import { CreatePatientDto } from "../dto/create-patient.dto";
+import { UpdatePatientDto } from "../dto/update-patient.dto";
+import { Patient } from "../entities/patient.entity";
+import { InjectRepository } from "@nestjs/typeorm";
+import { Repository } from "typeorm";
+import * as bcryptjs from "bcryptjs";
+import { Employee } from "@src/core/employees/entities/employee.entity";
+import { EmployeeRole } from "@src/constants";
+import { EmployeesService } from "@src/core/employees/service/employees.service";
 
 @Injectable()
 export class PatientsService {
-
   constructor(
-    @InjectRepository(Patient) 
+    @InjectRepository(Patient)
     private readonly patientRepository: Repository<Patient>,
 
     @InjectRepository(Employee)
     private readonly employeeRepository: Repository<Employee>,
 
     private readonly employeeService: EmployeesService,
-
-  ) {
-  }
+  ) {}
 
   async create(createPatientDto: CreatePatientDto) {
     const employee = await this.employeeRepository.findOne({
       where: {
-        id: createPatientDto.medicId
-      }
+        id: createPatientDto.medicId,
+      },
     });
 
     if (!employee) {
-      throw new NotFoundException('No se encontro el medico con el id proporcionado');
-    } 
-
-    if (employee.role === EmployeeRole.ADMIN || employee.role === EmployeeRole.ASSISTANT) {
-      throw new BadRequestException('Este empleado no es especialista')
+      throw new NotFoundException("No se encontro el medico con el id proporcionado");
     }
 
     const exists = await this.numberPhoneExists(createPatientDto.personalPhone);
     const existsHome = await this.numberPhoneExists(createPatientDto.homePhone);
-    const existsIdentification = await this.identificationExists(createPatientDto.identification);
 
     if (exists) {
-      throw new BadRequestException('Ya existe un paciente con este numero de telefono personal');
+      throw new BadRequestException("Ya existe un paciente con este numero de telefono personal");
     }
 
     if (existsHome) {
-      throw new BadRequestException('Ya existe un paciente con este numero de telefono de casa');
+      throw new BadRequestException("Ya existe un paciente con este numero de telefono de casa");
     }
 
-    if (existsIdentification) {
-      throw new BadRequestException('Ya existe un paciente con esta identificacion');
-    }
-
-    const patient = this.patientRepository.create({...createPatientDto, password: await bcryptjs.hash(createPatientDto.password, 10), medic: employee});
-
+    const patient = this.patientRepository.create({
+      ...createPatientDto,
+      medic: employee,
+    });
 
     await this.patientRepository.save(patient);
 
@@ -66,12 +55,12 @@ export class PatientsService {
 
   async findAll() {
     return await this.patientRepository.find({
-      relations : ['medic'],
+      relations: ["medic"],
     });
   }
 
   async findOne(id: number) {
-    const found = await this.patientRepository.findOne({ where: { id }, relations : ['medic'] });
+    const found = await this.patientRepository.findOne({ where: { id }, relations: ["medic"] });
 
     if (!found) {
       throw new NotFoundException(`Paciente con el ID ${id} no fue encontrado`);
@@ -91,7 +80,7 @@ export class PatientsService {
       const exists = await this.numberPhoneExists(updatePatientDto.personalPhone);
 
       if (exists) {
-        throw new BadRequestException('Ya existe un paciente con este numero de telefono personal');
+        throw new BadRequestException("Ya existe un paciente con este numero de telefono personal");
       }
     }
 
@@ -99,48 +88,23 @@ export class PatientsService {
       const exists = await this.numberPhoneExists(updatePatientDto.homePhone);
 
       if (exists) {
-        throw new BadRequestException('Ya existe un paciente con este numero de telefono de casa');
+        throw new BadRequestException("Ya existe un paciente con este numero de telefono de casa");
       }
     }
-
-    if (updatePatientDto.identification) {
-      const exists = await this.identificationExists(updatePatientDto.identification);
-
-      if (exists) {
-        throw new BadRequestException('Ya existe un paciente con esta identificacion');
-      }
-    }
-
-  if (updatePatientDto.email) {
-    const exists = await this.patientRepository.findOne({
-      where: {
-        email: updatePatientDto.email
-      }
-    });
-    
-    if (exists && exists.id !== id) {
-      throw new BadRequestException('Ya existe un paciente con este correo');
-    }
-  }
 
     if (updatePatientDto.medicId) {
       const employee = await this.employeeRepository.findOne({
         where: {
-          id: updatePatientDto.medicId
-        }
+          id: updatePatientDto.medicId,
+        },
       });
 
       if (!employee) {
-        throw new NotFoundException('No se encontro el medico con el id proporcionado');
+        throw new NotFoundException("No se encontro el medico con el id proporcionado");
       }
 
-      if (employee.role === EmployeeRole.ADMIN || employee.role === EmployeeRole.ASSISTANT) {
-        throw new BadRequestException('Este empleado no es especialista')
-      }
-      
       return await this.patientRepository.update(id, { ...updatePatientDto, medic: employee });
     }
-    
 
     const updatedPatient = await this.patientRepository.update(id, updatePatientDto);
 
@@ -160,8 +124,8 @@ export class PatientsService {
   private async getByNumberPhone(personalPhone: string) {
     const patient = await this.patientRepository.findOne({
       where: {
-        personalPhone 
-      }
+        personalPhone,
+      },
     });
 
     return patient;
@@ -170,33 +134,8 @@ export class PatientsService {
   private async getByNumberPhoneHome(homePhone: string) {
     const patient = await this.patientRepository.findOne({
       where: {
-        homePhone 
-      }
-    });
-
-    return patient;
-  }
-
-  async getByEmail(email: string) {
-    const patient = await this.patientRepository.findOne({
-      where: {
-        email 
+        homePhone,
       },
-      select: ['id', 'email', 'password']
-    });
-
-    if (!patient) {
-      throw new NotFoundException(`Paciente con el email ${email} no fue encontrado`);
-    }
-
-    return patient;
-  }
-
-  async getByIdentification(identification: string) {
-    const patient = await this.patientRepository.findOne({
-      where: {
-        identification 
-      }
     });
 
     return patient;
@@ -207,17 +146,6 @@ export class PatientsService {
     const phoneHome = await this.getByNumberPhoneHome(phone);
 
     if (personalHome || phoneHome) {
-      return true;
-    }
-
-    return false;
-  }
-
-  async identificationExists(identification: string) {
-    const patient = await this.getByIdentification(identification);
-    const employee = await this.employeeService.getByIdentification(identification);
-
-    if (patient || employee) {
       return true;
     }
 
