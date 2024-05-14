@@ -1,6 +1,8 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { AllRole } from "@src/constants";
+import { Chat } from "@src/core/chats/entities/chat.entity";
 import { Employee } from "@src/core/employees/entities/employee.entity";
+import { Message } from "@src/core/messagges/entities/messagge.entity";
 import { Patient } from "@src/core/patients/entities/patient.entity";
 import {
   Column,
@@ -8,6 +10,8 @@ import {
   DeleteDateColumn,
   Entity,
   JoinColumn,
+  ManyToMany,
+  OneToMany,
   OneToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
@@ -57,6 +61,15 @@ export class User {
   @ApiProperty({ example: true })
   @Column("bool", { default: false, select: false })
   isVerify: boolean;
+
+  @OneToMany(() => Message, (message: Message) => message.user)
+  public message: Message;
+
+  @OneToMany(() => Chat, (chat: Chat) => chat.created_by)
+  public createdChats: Chat[];
+
+  @ManyToMany((type) => Chat, (chat: Chat) => chat.users)
+  public chats: Chat[];
 
   @ApiProperty()
   @CreateDateColumn()

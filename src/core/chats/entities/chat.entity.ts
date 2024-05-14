@@ -1,3 +1,4 @@
+import { Message } from '@src/core/messagges/entities/messagge.entity';
 import { User } from '@src/core/users/entities/user.entity';
 import {
   BaseEntity,
