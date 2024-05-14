@@ -122,6 +122,24 @@ export class PatientsService {
       throw new BadRequestException('Ya existe un paciente con este correo');
     }
   }
+
+    if (updatePatientDto.medicId) {
+      const employee = await this.employeeRepository.findOne({
+        where: {
+          id: updatePatientDto.medicId
+        }
+      });
+
+      if (!employee) {
+        throw new NotFoundException('No se encontro el medico con el id proporcionado');
+      }
+
+      if (employee.role === EmployeeRole.ADMIN || employee.role === EmployeeRole.ASSISTANT) {
+        throw new BadRequestException('Este empleado no es especialista')
+      }
+      
+      return await this.patientRepository.update(id, { ...updatePatientDto, medic: employee });
+    }
     
 
     const updatedPatient = await this.patientRepository.update(id, updatePatientDto);

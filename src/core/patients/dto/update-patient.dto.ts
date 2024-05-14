@@ -1,9 +1,10 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsOptional, IsString, IsNumber, IsEnum, MinLength, MaxLength, Matches, IsNumberString, IsEmail, ValidateNested } from 'class-validator';
+import { IsOptional, IsString, IsNumber, IsEnum, MinLength, MaxLength, Matches, IsNumberString, IsEmail, ValidateNested, IsBoolean } from 'class-validator';
 import { Type } from 'class-transformer';
 import { Hospital } from '@src/core/employees/entities/hospital.entity';
 import { SurgeryType } from '@src/constants/surgery/type';
 import { isUniqueDb } from '@youba/nestjs-dbvalidator';
+import { StatusPatient } from '@src/constants/status/statusPatient';
 
 export class UpdatePatientDto {
     
@@ -80,4 +81,19 @@ export class UpdatePatientDto {
     @IsOptional()
     @IsEnum(SurgeryType)
     surgeryType: SurgeryType;
+
+    @ApiProperty({ example: true, required: true})
+    @IsOptional()
+    @IsBoolean()
+    automaticTracking: boolean;
+
+    @ApiProperty({ enum: StatusPatient, example: StatusPatient.ACTIVE})
+    @IsOptional()
+    @IsEnum(StatusPatient, { message: 'Status invalido' })
+    status: StatusPatient;
+
+    @ApiProperty({ example: 1})
+    @IsOptional()
+    @IsNumber()
+    medicId: number;
 }
