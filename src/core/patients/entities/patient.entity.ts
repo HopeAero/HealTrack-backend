@@ -1,4 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { StatusPatient } from '@src/constants/status/statusPatient';
 import { SurgeryType } from '@src/constants/surgery/type';
 import { Employee } from '@src/core/employees/entities/employee.entity';
 import { Hospital } from '@src/core/employees/entities/hospital.entity';
@@ -76,6 +77,19 @@ export class Patient {
     enum: SurgeryType,
   })
   surgeryType: SurgeryType;
+
+  @ApiProperty()
+  @Column('bool', { default: false })
+  automaticTracking: boolean;
+
+  @ApiProperty()
+  @Column({
+    type: 'enum',
+    enum: StatusPatient,
+    default: StatusPatient.ACTIVE,
+  })
+  status: StatusPatient;
+  
 
   @ApiProperty()
   @DeleteDateColumn()

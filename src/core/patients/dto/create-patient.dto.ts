@@ -5,6 +5,7 @@ import { Hospital } from '@src/core/employees/entities/hospital.entity';
 import { SurgeryType } from '@src/constants/surgery/type';
 import { isUniqueDb } from '@youba/nestjs-dbvalidator';
 import { CreateHospitalDto } from '@src/core/employees/dto/hospital.dto';
+import { StatusPatient } from '@src/constants/status/statusPatient';
 
 export class CreatePatientDto {
     
@@ -90,6 +91,16 @@ export class CreatePatientDto {
     @IsNotEmpty()
     @IsEnum(SurgeryType)
     surgeryType: SurgeryType;
+
+    @ApiProperty({ example: true, required: true})
+    @IsNotEmpty()
+    @IsBoolean()
+    automaticTracking: boolean;
+
+    @ApiProperty({ enum: StatusPatient, example: StatusPatient.ACTIVE})
+    @IsOptional()
+    @IsEnum(StatusPatient, { message: 'Status invalido' })
+    status: StatusPatient;
 
     @ApiProperty({ example: 1, required: true})
     @IsNotEmpty()
