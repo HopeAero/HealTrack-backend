@@ -19,6 +19,10 @@ export class User {
   @PrimaryGeneratedColumn("increment")
   id: number;
 
+  @OneToOne(() => Patient, (patient) => patient.user)
+  @JoinColumn()
+  patient: Patient;
+
   @OneToOne(() => Employee, (employee) => employee.user)
   @JoinColumn()
   employee: Employee;

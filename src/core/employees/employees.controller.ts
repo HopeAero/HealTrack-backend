@@ -4,9 +4,6 @@ import { CreateEmployeeDto } from "./dto/create-employee.dto";
 import { UpdateEmployeeDto } from "./dto/update-employee.dto";
 import { ApiTags } from "@nestjs/swagger";
 import * as express from "express";
-import { stat } from "fs";
-import { CreateUserDto } from "../users/dto/create-user.dto";
-import { UpdateUserDto } from "../users/dto/update-user.dto";
 
 @ApiTags("employees")
 @Controller("employees")

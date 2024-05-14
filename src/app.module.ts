@@ -20,6 +20,7 @@ import { UsersModule } from "./core/users/users.module";
       useFactory: async (configService: ConfigService) => configService.get("typeorm"),
     }),
     UsersModule,
+    PatientsModule,
     EmployeesModule,
   ],
   controllers: [AppController],

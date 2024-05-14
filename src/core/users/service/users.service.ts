@@ -14,6 +14,29 @@ export class UsersService {
   ) {}
 
   async create(createUserDto: CreateUserDto) {
+    const userExist = await this.userRepository.findOne({
+      where: {
+        email: createUserDto.email,
+      },
+    });
+
+    if (userExist) {
+      throw new HttpException(`Usuario con este correo ${createUserDto.email} ya existe`, HttpStatus.CONFLICT);
+    }
+
+    const userExistIdentification = await this.userRepository.findOne({
+      where: {
+        identification: createUserDto.identification,
+      },
+    });
+
+    if (userExistIdentification) {
+      throw new HttpException(
+        `Usuario con esta identificacion ${createUserDto.identification} ya existe`,
+        HttpStatus.CONFLICT,
+      );
+    }
+
     return await this.userRepository.save(createUserDto);
   }
 
