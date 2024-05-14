@@ -1,44 +1,50 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { CreateEmployeeDto } from '../dto/create-employee.dto';
-import { UpdateEmployeeDto } from '../dto/update-employee.dto';
-import { Employee } from '../entities/employee.entity';
-import { Repository } from 'typeorm';
-import * as bcryptjs from 'bcryptjs';
-import { InjectRepository } from '@nestjs/typeorm';
-import { PatientsService } from '@src/core/patients/service/patients.service';
-import { Patient } from '@src/core/patients/entities/patient.entity';
+import { BadRequestException, HttpException, HttpStatus, Injectable, NotFoundException } from "@nestjs/common";
+import { CreateEmployeeDto } from "../dto/create-employee.dto";
+import { UpdateEmployeeDto } from "../dto/update-employee.dto";
+import { Employee } from "../entities/employee.entity";
+import { Repository } from "typeorm";
+import { InjectRepository } from "@nestjs/typeorm";
+import { UsersService } from "@src/core/users/service/users.service";
+import { AllRole } from "@src/constants";
+import * as bcryptjs from "bcryptjs";
 
 @Injectable()
 export class EmployeesService {
   constructor(
-    @InjectRepository(Employee) 
+    @InjectRepository(Employee)
     private readonly employeeRepository: Repository<Employee>,
 
-    @InjectRepository(Patient)
-    private readonly patientRepository: Repository<Patient>,
-    
-  ) {
-  }
+    private readonly userService: UsersService,
+  ) {}
   async create(createEmployeeDto: CreateEmployeeDto) {
-
-    const exists = await this.getByIdentification(createEmployeeDto.identification);
-    const exist2 = await this.patientRepository.findOne({where: {identification: createEmployeeDto.identification}});
-    
-    if (exists || exist2) {
-      throw new NotFoundException('Ya existe una persona con esta identificacion');
+    if (
+      createEmployeeDto.user.role !== AllRole.SPECIALIST &&
+      createEmployeeDto.user.role !== AllRole.ADMIN &&
+      createEmployeeDto.user.role !== AllRole.ASSISTANT
+    ) {
+      throw new NotFoundException("El rol del empleado no es valido");
     }
 
-    let employee = await this.employeeRepository.create({...createEmployeeDto, password: await bcryptjs.hash(createEmployeeDto.password, 10)});
+    const employee = new Employee();
+    employee.hospital = createEmployeeDto.hospital;
+
     await this.employeeRepository.save(employee);
-    return employee;
+
+    return await this.userService.create({
+      ...createEmployeeDto.user,
+      employee: employee,
+      password: await bcryptjs.hash(createEmployeeDto.user.password, 10),
+    });
   }
 
   async findAll() {
-    return await this.employeeRepository.find();
+    return await this.employeeRepository.find({
+      relations: ["user"],
+    });
   }
 
   async findOne(id: number) {
-    const found = await this.employeeRepository.findOne({ where: { id } });
+    const found = await this.employeeRepository.findOne({ where: { id }, relations: ["user"] });
 
     if (!found) {
       throw new NotFoundException(`Empleado con el ID ${id} no fue encontrado`);
@@ -48,31 +54,38 @@ export class EmployeesService {
   }
 
   async update(id: number, updateEmployeeDto: UpdateEmployeeDto) {
-    const employee = await this.findOne(id);
+    try {
+      const employee = await this.findOne(id);
 
-    const exist1 = await this.getByIdentification(updateEmployeeDto.identification);
-    const exist2 = await this.patientRepository.findOne({where: {identification: updateEmployeeDto.identification}});
-    const exist3 = await this.employeeRepository.findOne({
-      where: {
-        email: updateEmployeeDto.email
+      if (!employee) {
+        throw new NotFoundException(`Empleado con el ID ${id} no fue encontrado`);
       }
-    });
 
-    if (exist1 || exist2) {
-      throw new NotFoundException('Ya existe una persona con esta identificacion');
+      if (updateEmployeeDto.user) {
+        if (updateEmployeeDto.user.role) {
+          if (
+            updateEmployeeDto.user.role !== AllRole.SPECIALIST &&
+            updateEmployeeDto.user.role !== AllRole.ADMIN &&
+            updateEmployeeDto.user.role !== AllRole.ASSISTANT
+          ) {
+            throw new BadRequestException("El rol del empleado no es valido");
+          }
+        }
+      }
+
+      if (updateEmployeeDto.user) {
+        const isback = await this.userService.update(employee.user.id, updateEmployeeDto.user);
+      }
+
+      let { hospital, ...rest } = updateEmployeeDto;
+
+      const updatedEmployee = await this.employeeRepository.update(id, { hospital: hospital });
+
+      return updatedEmployee;
+    } catch (error) {
+      console.log(error);
+      throw new HttpException(`Error interno ${error.message}`, HttpStatus.INTERNAL_SERVER_ERROR);
     }
-
-    if (!employee) {
-      throw new NotFoundException(`Empleado con el ID ${id} no fue encontrado`);
-    }
-
-    if (exist3 && exist3.id !== id) {
-      throw new NotFoundException('Ya existe una persona con este correo');
-    }
-
-    const updatedEmployee = await this.employeeRepository.update(id, updateEmployeeDto);
-
-    return updatedEmployee;
   }
 
   async remove(id: number) {
@@ -83,27 +96,8 @@ export class EmployeesService {
     }
 
     await this.employeeRepository.softDelete(id);
+    await this.userService.remove(employee.user.id);
+
+    return true;
   }
-
-  async getByEmail(email: string) {
-    const employee = await this.employeeRepository.findOne({
-      where: {
-        email
-      },
-      select: ['id', 'email', 'password']
-    })
-
-    return employee
-  }
-
-  async getByIdentification(identification: string) {
-    const employee = await this.employeeRepository.findOne({
-      where: {
-        identification
-      }
-    })
-
-    return employee
-  }
-
 }
