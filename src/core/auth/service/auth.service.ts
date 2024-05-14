@@ -8,6 +8,7 @@ import { CreateEmployeeDto } from "@src/core/employees/dto/create-employee.dto";
 import { AllRole } from "@src/constants";
 import { CreatePatientDto } from "@src/core/patients/dto/create-patient.dto";
 import { UsersService } from "@src/core/users/service/users.service";
+import { envData } from "@src/config/typeorm";
 
 @Injectable()
 export class AuthService {
@@ -91,5 +92,15 @@ export class AuthService {
       id: employee.id,
       role: employee.role,
     };
+  }
+
+  public async getUserFromAuthenticationToken(token: string) {
+    const payload = this.jwtService.verify(token, {
+      secret: envData.SECRET,
+    });
+
+    if (payload.id) {
+      return this.userService.findOne(payload.id);
+    }
   }
 }
