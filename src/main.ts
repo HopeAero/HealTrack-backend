@@ -36,6 +36,7 @@ async function bootstrap() {
     .setDescription('Esta es la api de HealTrack')
     .addTag('patients')
     .addTag('employees')
+    .addTag('chat')
     .addTag('auth')
     .build();
 

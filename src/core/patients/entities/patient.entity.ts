@@ -1,5 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { SurgeryType } from '@src/constants/surgery/type';
+import { Chat } from '@src/core/chat/entities/chat.entity';
 import { Employee } from '@src/core/employees/entities/employee.entity';
 import { Hospital } from '@src/core/employees/entities/hospital.entity';
 
@@ -8,6 +9,7 @@ import {
   DeleteDateColumn,
   Entity,
   JoinColumn,
+  ManyToMany,
   ManyToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
@@ -84,4 +86,7 @@ export class Patient {
   @ManyToOne(() => Employee, (employee) => employee.patients)
   @JoinColumn({ name: 'employeeId' })
   medic: Employee;
+
+  @ManyToMany((type) => Chat, (chat: Chat) => chat.patients)
+  public chats: Chat[];
 }

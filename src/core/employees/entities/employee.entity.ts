@@ -4,12 +4,14 @@ import {
   Column,
   DeleteDateColumn,
   Entity,
+  ManyToMany,
   OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { Hospital } from './hospital.entity';
 import { EmployeeRole } from '@src/constants';
 import { Patient } from '@src/core/patients/entities/patient.entity';
+import { Chat } from '@src/core/chat/entities/chat.entity';
 
 @Entity()
 export class Employee {
@@ -57,4 +59,7 @@ export class Employee {
 
   @OneToMany(() => Patient, (patient) => patient.medic)
   patients: Patient[];
+
+  @ManyToMany((type) => Chat, (chat: Chat) => chat.employees)
+  public chats: Chat[];
 }

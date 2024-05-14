@@ -7,6 +7,7 @@ import * as bcryptjs from 'bcryptjs';
 import { CreateEmployeeDto } from '@src/core/employees/dto/create-employee.dto';
 import { AllRole } from '@src/constants';
 import { CreatePatientDto } from '@src/core/patients/dto/create-patient.dto';
+import { envData } from '@src/config/typeorm';
 
 
 @Injectable()
@@ -113,6 +114,21 @@ async registerPatient(createPatientDto: CreatePatientDto) {
       role : AllRole.PATIENT
     }
   
+  }
+
+  public async getUserFromAuthenticationToken(token: string) {
+    const payload = this.jwtService.verify(token, {
+      secret: envData.SECRET,
+    });
+
+    if (payload.id) {
+      if (payload.role === AllRole.PATIENT) {
+        return this.patientService.findOne(payload.id);
+      }
+      if (payload.role === AllRole.ADMIN || payload.role === AllRole.SPECIALIST || payload.role === AllRole.ASSISTANT) {
+        return this.employeeService.findOne(payload.id);
+      }
+    }
   }
 
 }

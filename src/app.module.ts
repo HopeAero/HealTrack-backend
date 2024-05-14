@@ -8,6 +8,7 @@ import { EmployeesModule } from './core/employees/employees.module';
 import { PatientsModule } from './core/patients/patients.module';
 import { AuthModule } from './core/auth/auth.module';
 import { ChatGateway } from './core/chat/chat.gateway';
+import { MessageModule } from './core/message/message.module';
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import { ChatGateway } from './core/chat/chat.gateway';
     EmployeesModule,
     PatientsModule,
     AuthModule,
+    MessageModule,
   ],
   controllers: [AppController],
   providers: [AppService, ChatGateway],
