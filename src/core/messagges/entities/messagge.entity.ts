@@ -1,5 +1,5 @@
-import { Chat } from '@src/core/chats/entities/chat.entity';
-import { User } from '@src/core/users/entities/user.entity';
+import { Chat } from "@src/core/chats/entities/chat.entity";
+import { User } from "@src/core/users/entities/user.entity";
 import {
   BaseEntity,
   Column,
@@ -9,14 +9,14 @@ import {
   ManyToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
-} from 'typeorm';
+} from "typeorm";
 
-@Entity({ name: 'messages' })
+@Entity({ name: "messages" })
 export class Message extends BaseEntity {
-  @PrimaryGeneratedColumn('uuid')
+  @PrimaryGeneratedColumn("uuid")
   id: string;
 
-  @Column('text')
+  @Column("text")
   message: string;
 
   @ManyToOne(() => User, {
@@ -32,13 +32,13 @@ export class Message extends BaseEntity {
   })
   public chat: Chat;
 
-  @Column('boolean', { default: false })
+  @Column("boolean", { default: false })
   was_edited: boolean;
 
-  @CreateDateColumn({ type: 'timestamptz' })
+  @CreateDateColumn({ type: "timestamptz" })
   createdAt: Date;
 
-  @UpdateDateColumn({ type: 'timestamptz' })
+  @UpdateDateColumn({ type: "timestamptz" })
   updatedAt: Date;
 
   constructor(data: Message) {

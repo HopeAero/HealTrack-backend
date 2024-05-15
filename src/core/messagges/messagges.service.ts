@@ -1,26 +1,52 @@
 import { Injectable } from '@nestjs/common';
-import { CreateMessaggeDto } from './dto/create-messagge.dto';
-import { UpdateMessaggeDto } from './dto/update-messagge.dto';
+import { InjectRepository } from '@nestjs/typeorm';
+import { classToPlain, plainToClass } from 'class-transformer';
+import { Repository } from 'typeorm';
+import { MessageDto } from './dto/message.dto';
+import { User } from '../users/entities/user.entity';
+import { Message } from './entities/messagge.entity';
 
 @Injectable()
-export class MessaggesService {
-  create(createMessaggeDto: CreateMessaggeDto) {
-    return 'This action adds a new messagge';
+export class MessagesService {
+  constructor(
+    @InjectRepository(Message)
+    private readonly messageRepo: Repository<Message>,
+  ) {}
+
+  async setMessage(message: string, user: User) {
+    const newMessage = await this.messageRepo.create({
+      message,
+      user,
+    });
+    await this.messageRepo.save(newMessage);
+    delete newMessage.user;
+    return newMessage;
   }
 
-  findAll() {
-    return `This action returns all messagges`;
+  async saveMessage(messageDto: MessageDto): Promise<Message> {
+    const data = classToPlain(messageDto);
+    const createdMessage = this.messageRepo.create({
+      ...plainToClass(Message, data),
+    });
+
+    await this.messageRepo.save(createdMessage);
+    delete createdMessage.chat;
+    return createdMessage;
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} messagge`;
-  }
+  async getMessages(id: number, offset?: number, limit?: number): Promise<any> {
+    const [items, count] = await this.messageRepo.findAndCount({
+      where: { chat: { id } },
+      order: {
+        createdAt: 'DESC',
+      },
+      skip: offset,
+      take: limit,
+    });
 
-  update(id: number, updateMessaggeDto: UpdateMessaggeDto) {
-    return `This action updates a #${id} messagge`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} messagge`;
+    return {
+      data: items,
+      count,
+    };
   }
 }

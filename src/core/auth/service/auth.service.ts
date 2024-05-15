@@ -25,8 +25,6 @@ export class AuthService {
   async login({ email, password }: LoginDto) {
     const user = await this.userService.getByEmail(email);
 
-    console.log(user);
-
     if (!user) {
       throw new UnauthorizedException("correo no encontrado");
     }
