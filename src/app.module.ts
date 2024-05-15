@@ -8,7 +8,9 @@ import { EmployeesModule } from "./core/employees/employees.module";
 import { PatientsModule } from "./core/patients/patients.module";
 import { AuthModule } from "./core/auth/auth.module";
 import { UsersModule } from "./core/users/users.module";
-import { ChatGateway } from "./core/chat/chat.gateway";
+import { ChatsModule } from "./core/chats/chats.module";
+import { MessaggesModule } from "./core/messagges/messagges.module";
+import { SocketModule } from "./common/socket/socket.module";
 
 @Module({
   imports: [
@@ -24,8 +26,11 @@ import { ChatGateway } from "./core/chat/chat.gateway";
     PatientsModule,
     AuthModule,
     EmployeesModule,
+    MessaggesModule,
+    ChatsModule,
+    SocketModule,
   ],
   controllers: [AppController],
-  providers: [AppService, ChatGateway],
+  providers: [AppService],
 })
 export class AppModule {}

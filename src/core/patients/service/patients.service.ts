@@ -73,7 +73,6 @@ export class PatientsService {
       const userCreate = await this.userService.create({
         ...user,
         patient: patient,
-        password: await bcryptjs.hash(user.password, 10),
       });
 
       return userCreate;

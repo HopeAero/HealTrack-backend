@@ -33,7 +33,6 @@ export class EmployeesService {
     return await this.userService.create({
       ...createEmployeeDto.user,
       employee: employee,
-      password: await bcryptjs.hash(createEmployeeDto.user.password, 10),
     });
   }
 
