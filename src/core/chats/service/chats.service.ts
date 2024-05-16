@@ -25,11 +25,14 @@ export class ChatsService {
   ) {}
 
   async getUserFromSocket(socket: Socket) {
-    const user = await this.authService.getUserFromAuthenticationToken(
-      socket.handshake.headers.authorization.replace("Bearer ", ""),
-    );
+    const authHeader = socket.handshake.headers.authorization;
+    if (!authHeader) {
+      throw new WsException("No se proporcionó un encabezado de autorización.");
+    }
+
+    const user = await this.authService.getUserFromAuthenticationToken(authHeader.replace("Bearer ", ""));
     if (!user) {
-      throw new WsException("Invalid credentials.");
+      throw new WsException("Credenciales inválidas.");
     }
     return user;
   }
