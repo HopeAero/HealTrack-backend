@@ -108,6 +108,7 @@ export class ChatsService {
       .innerJoin("chats_users_user", "cu", 'chat.id = cu."chatsId"')
       .leftJoinAndSelect("chat.users", "users")
       .leftJoinAndSelect("chat.last_message", "last_message")
+      .leftJoinAndSelect("last_message.user", "last_message_user")
       .leftJoinAndSelect("chat.created_by", "created_by")
       .where(`chat."createdById" = ${user.id} OR cu."userId" = ${user.id}`)
       .getMany();
