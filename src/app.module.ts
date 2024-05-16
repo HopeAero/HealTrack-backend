@@ -11,6 +11,7 @@ import { UsersModule } from "./core/users/users.module";
 import { ChatsModule } from "./core/chats/chats.module";
 import { MessaggesModule } from "./core/messagges/messagges.module";
 import { SocketModule } from "./common/socket/socket.module";
+import { ReportsModule } from "./core/reports/reports.module";
 
 @Module({
   imports: [
@@ -29,6 +30,7 @@ import { SocketModule } from "./common/socket/socket.module";
     MessaggesModule,
     ChatsModule,
     SocketModule,
+    ReportsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

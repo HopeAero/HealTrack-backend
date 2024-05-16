@@ -4,6 +4,7 @@ import { Chat } from "@src/core/chats/entities/chat.entity";
 import { Employee } from "@src/core/employees/entities/employee.entity";
 import { Message } from "@src/core/messagges/entities/messagge.entity";
 import { Patient } from "@src/core/patients/entities/patient.entity";
+import { ReportMedic } from "@src/core/reports/entities/report.entity";
 import {
   Column,
   CreateDateColumn,
@@ -70,6 +71,9 @@ export class User {
 
   @ManyToMany((type) => Chat, (chat: Chat) => chat.users)
   public chats: Chat[];
+
+  @OneToMany((type) => ReportMedic, (report: ReportMedic) => report.user)
+  report: ReportMedic[];
 
   @ApiProperty()
   @CreateDateColumn()
