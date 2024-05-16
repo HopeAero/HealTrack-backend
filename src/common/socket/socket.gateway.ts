@@ -12,7 +12,7 @@ import { Server, Socket } from "socket.io";
 import { SocketService } from "../modules/external/services/socket.service";
 import { ChatsService } from "@src/core/chats/service/chats.service";
 
-@WebSocketGateway()
+@WebSocketGateway({ cors: true })
 export class ChatGateway implements OnGatewayInit, OnGatewayConnection {
   @WebSocketServer()
   server: Server;
