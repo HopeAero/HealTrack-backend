@@ -46,11 +46,8 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection {
       "send_message",
 
       {
-        event: "send_message",
-        data: {
-          user,
-          message,
-        },
+        user,
+        message,
       },
     );
   }
