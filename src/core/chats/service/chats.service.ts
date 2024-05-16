@@ -158,7 +158,7 @@ export class ChatsService {
       throw new BadRequestException("Chat not found.");
     }
 
-    return await this.messagesService.getMessages(id, offset, limit);
+    return await this.messagesService.getMessages(id, offset, limit, chat);
   }
 
   async savedMessage(message: string, user: User) {

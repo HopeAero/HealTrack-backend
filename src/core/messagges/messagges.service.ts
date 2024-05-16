@@ -5,6 +5,7 @@ import { Repository } from "typeorm";
 import { MessageDto } from "./dto/message.dto";
 import { User } from "../users/entities/user.entity";
 import { Message } from "./entities/messagge.entity";
+import { Chat } from "../chats/entities/chat.entity";
 
 @Injectable()
 export class MessagesService {
@@ -34,7 +35,7 @@ export class MessagesService {
     return createdMessage;
   }
 
-  async getMessages(id: number, offset?: number, limit?: number): Promise<any> {
+  async getMessages(id: number, offset?: number, limit?: number, chat?: Chat): Promise<any> {
     const [items, count] = await this.messageRepo.findAndCount({
       where: { chat: { id } },
       order: {
@@ -45,7 +46,10 @@ export class MessagesService {
     });
 
     return {
-      data: items,
+      data: {
+        chat,
+        items,
+      },
       count,
     };
   }
