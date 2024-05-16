@@ -1,10 +1,10 @@
-import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { classToPlain, plainToClass } from 'class-transformer';
-import { Repository } from 'typeorm';
-import { MessageDto } from './dto/message.dto';
-import { User } from '../users/entities/user.entity';
-import { Message } from './entities/messagge.entity';
+import { Injectable } from "@nestjs/common";
+import { InjectRepository } from "@nestjs/typeorm";
+import { classToPlain, plainToClass } from "class-transformer";
+import { Repository } from "typeorm";
+import { MessageDto } from "./dto/message.dto";
+import { User } from "../users/entities/user.entity";
+import { Message } from "./entities/messagge.entity";
 
 @Injectable()
 export class MessagesService {
@@ -38,7 +38,7 @@ export class MessagesService {
     const [items, count] = await this.messageRepo.findAndCount({
       where: { chat: { id } },
       order: {
-        createdAt: 'DESC',
+        createdAt: "ASC",
       },
       skip: offset,
       take: limit,
