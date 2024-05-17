@@ -1,5 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsBoolean, IsNotEmpty } from "class-validator";
+import { IsBoolean, IsNotEmpty, IsOptional } from "class-validator";
 
 export class CreateReportDto {
   @ApiProperty({ example: true, description: "Tiene temperatura mayor de 38,5 °C" })
@@ -21,4 +21,9 @@ export class CreateReportDto {
   @IsNotEmpty()
   @IsBoolean()
   hasSecretions: boolean;
+
+  @ApiProperty({ example: true })
+  @IsOptional()
+  @IsBoolean()
+  isRespondingForEmployee: boolean;
 }

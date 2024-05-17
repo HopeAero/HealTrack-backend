@@ -23,6 +23,8 @@ export class ReportMedic {
 
   @ApiProperty({ example: true })
   @Column("bool", { nullable: true })
+  isRespondingForEmployee: boolean;
+
   @ApiProperty({ example: true, description: "Tiene temperatura mayor de 38,5 °C" })
   @Column("bool", { nullable: false })
   hasHighTemperature: boolean;
