@@ -23,23 +23,21 @@ export class ReportMedic {
 
   @ApiProperty({ example: true })
   @Column("bool", { nullable: true })
-  isAnswerByMedic: boolean;
-
-  @ApiProperty({ example: true })
+  @ApiProperty({ example: true, description: "Tiene temperatura mayor de 38,5 °C" })
   @Column("bool", { nullable: false })
-  temperature: boolean;
+  hasHighTemperature: boolean;
 
-  @ApiProperty({ example: true })
+  @ApiProperty({ example: true, description: "Tiene enrojecimiento alrededor de la herida operatoria" })
   @Column("bool", { nullable: false })
-  redness: boolean;
+  hasRedness: boolean;
 
-  @ApiProperty({ example: true })
+  @ApiProperty({ example: true, description: "Tiene hinchazón en la herida operatoria" })
   @Column("bool", { nullable: false })
-  swelling: boolean;
+  hasSwelling: boolean;
 
-  @ApiProperty({ example: true })
+  @ApiProperty({ example: true, description: "Presenta secreciones que salen a través de la herida operatoria" })
   @Column("bool", { nullable: false })
-  secretions: boolean;
+  hasSecretions: boolean;
 
   @CreateDateColumn({ type: "timestamptz" })
   createdAt: Date;
