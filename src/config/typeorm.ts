@@ -20,6 +20,7 @@ const config = {
 
 export const envData = {
     DATABASE_HOST: process.env.DATABASE_HOST,
+    DATABASE_URL: process.env.DATABASE_URL,
     DATABASE_PORT: process.env.DATABASE_PORT,
     DATABASE_USERNAME: process.env.DATABASE_USERNAME,
     DATABASE_PASSWORD: process.env.DATABASE_PASSWORD,

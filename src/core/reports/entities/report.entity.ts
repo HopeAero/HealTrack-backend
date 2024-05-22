@@ -41,6 +41,10 @@ export class ReportMedic {
   @Column("bool", { nullable: false })
   hasSecretions: boolean;
 
+  @ApiProperty()
+  @Column("text", { nullable: true })
+  fileUrl: string;
+
   @CreateDateColumn({ type: "timestamptz" })
   createdAt: Date;
 

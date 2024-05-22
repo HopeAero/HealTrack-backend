@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from "@nestjs/common";
+import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
 import { CreateReportDto } from "../dto/create-report.dto";
 import { InjectRepository } from "@nestjs/typeorm";
 import { ReportMedic } from "../entities/report.entity";
@@ -6,6 +6,7 @@ import { Repository } from "typeorm";
 import { UsersService } from "@src/core/users/service/users.service";
 import { UserActiveInterface } from "@src/common/interface/user-active-interface";
 import { AllRole } from "@src/constants";
+import { envData } from "@src/config/typeorm";
 
 @Injectable()
 export class ReportsService {
@@ -32,6 +33,51 @@ export class ReportsService {
       ...createReportDto,
       user: activeUser,
     });
+
+    return report;
+  }
+
+  async uploadFile (id: number, file: Express.Multer.File, user: UserActiveInterface) {
+    let report = await this.reportRepository.findOne({
+      where: {
+        id,
+        user: {
+          id: user.id,
+        },
+      }
+    });
+
+    if (!report) {
+      throw new NotFoundException("Report not found");
+    }
+
+    let count = 0;
+  
+    if (!report.hasHighTemperature) {
+      count++;
+    }
+
+    if (!report.hasRedness) {
+      count++;
+    }
+
+    if (!report.hasSecretions) {
+      count++;
+    }
+
+    if (!report.hasSwelling) {
+      count++;
+    }
+
+    if (count >= 2) {
+      const newPath = envData.DATABASE_URL + '/' + file.path.replace(/\\/g, '/');
+    
+      report.fileUrl = newPath;
+
+      await this.reportRepository.save(report);
+    } else {
+      throw new BadRequestException("Este reporte no necesita archivo adjunto");
+    }
 
     return report;
   }

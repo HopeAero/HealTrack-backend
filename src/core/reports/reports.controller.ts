@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Res } from "@nestjs/common";
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Res, UploadedFile, ParseFilePipe, FileTypeValidator, MaxFileSizeValidator, UseInterceptors } from "@nestjs/common";
 import { CreateReportDto } from "./dto/create-report.dto";
 import { ReportsService } from "./service/reports.service";
 import { AuthGuard } from "../auth/guard/auth.guard";
@@ -8,6 +8,19 @@ import { Response } from "express";
 import { ApiBearerAuth, ApiTags } from "@nestjs/swagger";
 import { Auth } from "../auth/decorator/auth.decorator";
 import { AllRole } from "@src/constants";
+import { FileInterceptor } from "@nestjs/platform-express";
+import { diskStorage } from "multer";
+import { extname } from "path";
+
+const storage = diskStorage({
+  destination: './upload',
+  filename: (req, file, cb) => {
+    const name = file.originalname.split('.')[0];
+    const extension = extname(file.originalname);
+    const randomName = Array(32).fill(null).map(() => (Math.round(Math.random() * 16)).toString(16)).join('');
+    cb(null, `${randomName}${extension}`);
+  },
+});
 
 @ApiTags("reports")
 @Controller("reports")
@@ -23,7 +36,7 @@ export class ReportsController {
     @Res() res: Response,
   ) {
     try {
-      const report = await this.reportsService.create(createReportDto, user);
+      const report = await this.reportsService.create(createReportDto, user );
 
       return res.status(200).json({
         report,
@@ -44,6 +57,24 @@ export class ReportsController {
   async findOne(@Param("id") id: string) {
     return this.reportsService.findOne(+id);
   }
+
+  @UseGuards(AuthGuard)
+  @Post(":id/upload")
+  @UseInterceptors(FileInterceptor('file', { storage }))
+  async uploadFile(
+    @Param("id") id: string,
+    @UploadedFile(
+      new ParseFilePipe({
+        validators: [
+          new FileTypeValidator({ fileType: '.(png|jpeg|jpg)' }),
+        ],
+      }),
+    ) file: Express.Multer.File,
+    @ActiveUser() user: UserActiveInterface,
+  ) {
+      return await this.reportsService.uploadFile(+id, file, user);
+  }
+  
 
   @Auth(AllRole.ADMIN)
   @Delete(":id")

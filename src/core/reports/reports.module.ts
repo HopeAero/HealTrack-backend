@@ -4,9 +4,14 @@ import { TypeOrmModule } from "@nestjs/typeorm";
 import { ReportMedic } from "./entities/report.entity";
 import { ReportsService } from "./service/reports.service";
 import { UsersModule } from "../users/users.module";
+import { MulterModule } from "@nestjs/platform-express";
 
 @Module({
-  imports: [UsersModule, TypeOrmModule.forFeature([ReportMedic])],
+  imports: [
+    MulterModule.register({
+      dest: './upload',
+    }),
+    UsersModule, TypeOrmModule.forFeature([ReportMedic])],
   controllers: [ReportsController],
   providers: [ReportsService],
 })
