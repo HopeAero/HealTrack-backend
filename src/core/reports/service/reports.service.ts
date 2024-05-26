@@ -37,14 +37,14 @@ export class ReportsService {
     return report;
   }
 
-  async uploadFile (id: number, file: Express.Multer.File, user: UserActiveInterface) {
+  async uploadFile(id: number, file: Express.Multer.File, user: UserActiveInterface) {
     let report = await this.reportRepository.findOne({
       where: {
         id,
         user: {
           id: user.id,
         },
-      }
+      },
     });
 
     if (!report) {
@@ -52,26 +52,26 @@ export class ReportsService {
     }
 
     let count = 0;
-  
-    if (!report.hasHighTemperature) {
+
+    if (report.hasHighTemperature) {
       count++;
     }
 
-    if (!report.hasRedness) {
+    if (report.hasRedness) {
       count++;
     }
 
-    if (!report.hasSecretions) {
+    if (report.hasSecretions) {
       count++;
     }
 
-    if (!report.hasSwelling) {
+    if (report.hasSwelling) {
       count++;
     }
 
     if (count >= 2) {
-      const newPath = envData.DATABASE_URL + '/' + file.path.replace(/\\/g, '/');
-    
+      const newPath = envData.DATABASE_URL + "/" + file.path.replace(/\\/g, "/");
+
       report.fileUrl = newPath;
 
       await this.reportRepository.save(report);
