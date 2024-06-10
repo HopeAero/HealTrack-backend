@@ -13,6 +13,7 @@ import { User } from "@src/core/users/entities/user.entity";
 import { MessageDto } from "@src/core/messagges/dto/message.dto";
 import { Message } from "@src/core/messagges/entities/messagge.entity";
 import { SocketService } from "@src/common/modules/external/services/socket.service";
+import { envData } from "@src/config/typeorm";
 
 @Injectable()
 export class ChatsService {
@@ -128,7 +129,7 @@ export class ChatsService {
     return chat;
   }
 
-  async createMessage(id: number, messageDto: MessageDto, user: User): Promise<Message> {
+  async createMessage(id: number, messageDto: MessageDto, file: Express.Multer.File, user: User): Promise<Message> {
     const chat = await this.charRepo.findOne({
       where: { id },
       relations: ["users"],
@@ -138,6 +139,10 @@ export class ChatsService {
       throw new BadRequestException("Chat not found.");
     } else {
       const userRepo = await this.userService.findOne(user.id);
+      if (file) {
+        const newPath = envData.DATABASE_URL + "/" + file.path.replace(/\\/g, "/");
+        messageDto.attachment = newPath;
+      }
       const createdMessage = {
         ...messageDto,
         chat,

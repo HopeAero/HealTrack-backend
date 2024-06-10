@@ -42,6 +42,10 @@ export class ReportMedic {
   hasSecretions: boolean;
 
   @ApiProperty()
+  @Column({ default: "", nullable: true })
+  additionalInformation: string;
+
+  @ApiProperty()
   @Column("text", { nullable: true })
   fileUrl: string;
 

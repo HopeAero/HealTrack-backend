@@ -1,11 +1,26 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Res, UploadedFile, ParseFilePipe, FileTypeValidator, MaxFileSizeValidator, UseInterceptors } from "@nestjs/common";
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  UseGuards,
+  Res,
+  UploadedFile,
+  ParseFilePipe,
+  FileTypeValidator,
+  MaxFileSizeValidator,
+  UseInterceptors,
+} from "@nestjs/common";
 import { CreateReportDto } from "./dto/create-report.dto";
 import { ReportsService } from "./service/reports.service";
 import { AuthGuard } from "../auth/guard/auth.guard";
 import { ActiveUser } from "@src/common/decorator/active-user-decorator";
 import { UserActiveInterface } from "@src/common/interface/user-active-interface";
 import { Response } from "express";
-import { ApiBearerAuth, ApiTags } from "@nestjs/swagger";
+import { ApiBearerAuth, ApiConsumes, ApiTags } from "@nestjs/swagger";
 import { Auth } from "../auth/decorator/auth.decorator";
 import { AllRole } from "@src/constants";
 import { FileInterceptor } from "@nestjs/platform-express";
@@ -13,11 +28,14 @@ import { diskStorage } from "multer";
 import { extname } from "path";
 
 const storage = diskStorage({
-  destination: './upload',
+  destination: "./upload",
   filename: (req, file, cb) => {
-    const name = file.originalname.split('.')[0];
+    const name = file.originalname.split(".")[0];
     const extension = extname(file.originalname);
-    const randomName = Array(32).fill(null).map(() => (Math.round(Math.random() * 16)).toString(16)).join('');
+    const randomName = Array(32)
+      .fill(null)
+      .map(() => Math.round(Math.random() * 16).toString(16))
+      .join("");
     cb(null, `${randomName}${extension}`);
   },
 });
@@ -29,14 +47,22 @@ export class ReportsController {
   constructor(private readonly reportsService: ReportsService) {}
 
   @UseGuards(AuthGuard)
+  @UseInterceptors(FileInterceptor("file"))
   @Post()
   async create(
     @Body() createReportDto: CreateReportDto,
+    @UploadedFile(
+      new ParseFilePipe({
+        validators: [new FileTypeValidator({ fileType: ".(png|jpeg|jpg)" })],
+        fileIsRequired: false,
+      }),
+    )
+    file: Express.Multer.File,
     @ActiveUser() user: UserActiveInterface,
     @Res() res: Response,
   ) {
     try {
-      const report = await this.reportsService.create(createReportDto, user );
+      const report = await this.reportsService.create(createReportDto, file, user);
 
       return res.status(200).json({
         report,
@@ -60,21 +86,19 @@ export class ReportsController {
 
   @UseGuards(AuthGuard)
   @Post(":id/upload")
-  @UseInterceptors(FileInterceptor('file', { storage }))
+  @UseInterceptors(FileInterceptor("file", { storage }))
   async uploadFile(
     @Param("id") id: string,
     @UploadedFile(
       new ParseFilePipe({
-        validators: [
-          new FileTypeValidator({ fileType: '.(png|jpeg|jpg)' }),
-        ],
+        validators: [new FileTypeValidator({ fileType: ".(png|jpeg|jpg)" })],
       }),
-    ) file: Express.Multer.File,
+    )
+    file: Express.Multer.File,
     @ActiveUser() user: UserActiveInterface,
   ) {
-      return await this.reportsService.uploadFile(+id, file, user);
+    return await this.reportsService.uploadFile(+id, file, user);
   }
-  
 
   @Auth(AllRole.ADMIN)
   @Delete(":id")

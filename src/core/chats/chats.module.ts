@@ -10,9 +10,21 @@ import { ExternalModule } from "@src/common/modules/external/external.module";
 import { AuthService } from "../auth/service/auth.service";
 import { PatientsModule } from "../patients/patients.module";
 import { EmployeesModule } from "../employees/employees.module";
+import { MulterModule } from "@nestjs/platform-express";
+import { diskStorage } from "multer";
+import { extname } from "path";
 
 @Module({
   imports: [
+    MulterModule.register({
+      storage: diskStorage({
+        destination: "./upload",
+        filename: (req, file, cb) => {
+          const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
+          cb(null, `${file.fieldname}-${uniqueSuffix}${extname(file.originalname)}`);
+        },
+      }),
+    }),
     TypeOrmModule.forFeature([Chat]),
     UsersModule,
     MessaggesModule,

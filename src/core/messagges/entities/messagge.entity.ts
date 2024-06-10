@@ -32,6 +32,9 @@ export class Message extends BaseEntity {
   })
   public chat: Chat;
 
+  @Column("text", { nullable: true })
+  attachment: string;
+
   @Column("boolean", { default: false })
   was_edited: boolean;
 

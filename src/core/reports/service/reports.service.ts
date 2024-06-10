@@ -16,7 +16,11 @@ export class ReportsService {
     private readonly userService: UsersService,
   ) {}
 
-  async create(createReportDto: CreateReportDto, user: UserActiveInterface): Promise<ReportMedic> {
+  async create(
+    createReportDto: CreateReportDto,
+    file: Express.Multer.File,
+    user: UserActiveInterface,
+  ): Promise<ReportMedic> {
     const activeUser = await this.userService.findOne(user.id);
 
     if (!activeUser) {
@@ -27,6 +31,10 @@ export class ReportsService {
       createReportDto.isRespondingForEmployee = true;
     } else {
       createReportDto.isRespondingForEmployee = false;
+    }
+    if (file) {
+      const newPath = envData.DATABASE_URL + "/" + file.path.replace(/\\/g, "/");
+      createReportDto.fileUrl = newPath;
     }
 
     const report = await this.reportRepository.save({

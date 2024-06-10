@@ -2,14 +2,18 @@ import {
   Body,
   Controller,
   Delete,
+  FileTypeValidator,
   Get,
   HttpCode,
   Param,
+  ParseFilePipe,
   Patch,
   Post,
   Query,
   Req,
+  UploadedFile,
   UseGuards,
+  UseInterceptors,
   UsePipes,
   ValidationPipe,
 } from "@nestjs/common";
@@ -20,6 +24,7 @@ import { MessageDto } from "../messagges/dto/message.dto";
 import { Message } from "../messagges/entities/messagge.entity";
 import { AuthGuard } from "../auth/guard/auth.guard";
 import { ApiBearerAuth, ApiTags } from "@nestjs/swagger";
+import { FileInterceptor } from "@nestjs/platform-express";
 
 @ApiTags("chats")
 @Controller("chats")
@@ -60,9 +65,21 @@ export class ChatsController {
   }
   @UseGuards(AuthGuard)
   @Post(":id/messages")
+  @UseInterceptors(FileInterceptor("file"))
   @HttpCode(201)
-  sendMessage(@Req() req: any, @Param("id") id: number, @Body() messageDto: MessageDto): Promise<Message> {
-    return this.chatsService.createMessage(id, messageDto, req.user);
+  sendMessage(
+    @Req() req: any,
+    @Param("id") id: number,
+    @Body() messageDto: MessageDto,
+    @UploadedFile(
+      new ParseFilePipe({
+        validators: [new FileTypeValidator({ fileType: ".(png|jpeg|jpg)" })],
+        fileIsRequired: false,
+      }),
+    )
+    file: Express.Multer.File,
+  ): Promise<Message> {
+    return this.chatsService.createMessage(id, messageDto, file, req.user);
   }
   @Get(":id/messages")
   @HttpCode(200)
