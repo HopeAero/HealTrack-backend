@@ -12,6 +12,7 @@ import { Server, Socket } from "socket.io";
 import { SocketService } from "../modules/external/services/socket.service";
 import { ChatsService } from "@src/core/chats/service/chats.service";
 import { CORS } from "@src/constants";
+import { MessageContent } from "@src/constants/message/type";
 
 @WebSocketGateway({ cors: CORS })
 export class ChatGateway implements OnGatewayInit, OnGatewayConnection {
@@ -36,7 +37,9 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection {
   }
 
   @SubscribeMessage("send_message")
-  async listenForMessages(@MessageBody() content: string, @ConnectedSocket() socket: Socket) {
+  async listenForMessages(@MessageBody() content: MessageContent, @ConnectedSocket() socket: Socket) {
+    console.log("content");
+    console.log(content);
     const user = await this.chatService.getUserFromSocket(socket);
     const message = await this.chatService.savedMessage(content, user);
 

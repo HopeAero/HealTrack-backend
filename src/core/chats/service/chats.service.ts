@@ -14,6 +14,7 @@ import { MessageDto } from "@src/core/messagges/dto/message.dto";
 import { Message } from "@src/core/messagges/entities/messagge.entity";
 import { SocketService } from "@src/common/modules/external/services/socket.service";
 import { envData } from "@src/config/typeorm";
+import { MessageContent } from "@src/constants/message/type";
 
 @Injectable()
 export class ChatsService {
@@ -166,7 +167,7 @@ export class ChatsService {
     return await this.messagesService.getMessages(id, offset, limit, chat);
   }
 
-  async savedMessage(message: string, user: User) {
+  async savedMessage(message: MessageContent, user: User) {
     return await this.messagesService.setMessage(message, user);
   }
 }
