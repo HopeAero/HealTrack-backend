@@ -4,7 +4,6 @@ import { UpdateUserDto } from "../dto/update-user.dto";
 import { User } from "../entities/user.entity";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Not, Repository } from "typeorm";
-import { Console } from "console";
 
 @Injectable()
 export class UsersService {

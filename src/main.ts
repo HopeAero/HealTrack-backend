@@ -6,7 +6,7 @@ import { json } from "express";
 import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
 import { CORS } from "./constants";
 import * as morgan from "morgan";
-import * as express from 'express';
+import * as express from "express";
 import { join } from "path";
 
 async function bootstrap() {
@@ -30,8 +30,7 @@ async function bootstrap() {
     }),
   );
 
-  app.use('/upload', express.static(join(__dirname, '..', 'upload')));
-
+  app.use("/upload", express.static(join(__dirname, "..", "upload")));
 
   const config = new DocumentBuilder() // Documentación
     .addBearerAuth()

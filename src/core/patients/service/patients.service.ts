@@ -1,4 +1,5 @@
 import { BadRequestException, HttpException, HttpStatus, Injectable, NotFoundException } from "@nestjs/common";
+import { UpdatePatientStateDto } from "../dto/update-patient-state.dto";
 import { CreatePatientDto } from "../dto/create-patient.dto";
 import { UpdatePatientDto } from "../dto/update-patient.dto";
 import { Patient } from "../entities/patient.entity";
@@ -138,6 +139,23 @@ export class PatientsService {
       if (updatePatientDto.user) {
         const isback = await this.userService.update(patient.user.id, user);
       }
+
+      return true;
+    } catch (error) {
+      console.log(error);
+      throw new HttpException(error.message, error.status);
+    }
+  }
+
+  async updateState(id: number, updatePatientDto: UpdatePatientStateDto) {
+    try {
+      const patient = await this.findOne(id);
+
+      if (!patient) {
+        throw new NotFoundException(`Paciente con el ID ${id} no fue encontrado`);
+      }
+
+      await this.patientRepository.update(id, updatePatientDto);
 
       return true;
     } catch (error) {

@@ -30,6 +30,7 @@ export class CreateReportDto {
   @ApiProperty({ example: true })
   @IsOptional()
   @IsBoolean()
+  @Transform(({ value }) => value === "true" || value === true)
   isRespondingForEmployee: boolean;
 
   @ApiProperty({ example: "Presenta dolor de cabeza" })
