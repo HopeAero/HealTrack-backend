@@ -5,7 +5,7 @@ services:
     container_name: local_pgdb
     restart: always
     ports:
-      - "5432:5432"
+      - "5433:5432"
     environment:
       POSTGRES_USER: hopeaero
       POSTGRES_PASSWORD: salcedo2001
