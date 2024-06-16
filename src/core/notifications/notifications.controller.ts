@@ -1,7 +1,7 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete } from "@nestjs/common";
-import { CreateNotificationDto } from "./dto/create-notification.dto";
 import { NotificationsService } from "./service/notifications.service";
 import { ApiTags } from "@nestjs/swagger";
+import { CreateNotificationDto } from "./dto/create-notification.dto";
 
 @ApiTags("notification")
 @Controller("notifications")
