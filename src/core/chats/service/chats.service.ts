@@ -150,7 +150,16 @@ export class ChatsService {
         user: userRepo,
       };
 
-      return await this.messagesService.saveMessage(createdMessage);
+      const savedMessage = await this.messagesService.saveMessage(createdMessage);
+
+      if (chat) {
+        chat.last_message = savedMessage;
+        await this.charRepo.save(chat);
+      }
+
+      await this.charRepo.save(chat);
+
+      return savedMessage;
     }
   }
 
