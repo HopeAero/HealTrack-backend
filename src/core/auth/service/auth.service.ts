@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, UnauthorizedException } from "@nestjs/common";
+import { BadRequestException, Injectable, UnauthorizedException, ForbiddenException } from "@nestjs/common";
 import { JwtService } from "@nestjs/jwt";
 import { EmployeesService } from "@core/employees/service/employees.service";
 import { PatientsService } from "@core/patients/service/patients.service";
@@ -9,6 +9,7 @@ import { AllRole } from "@src/constants";
 import { CreatePatientDto } from "@src/core/patients/dto/create-patient.dto";
 import { UsersService } from "@src/core/users/service/users.service";
 import { envData } from "@src/config/typeorm";
+import { StatusPatient } from "@src/constants/status/statusPatient";
 
 @Injectable()
 export class AuthService {
@@ -33,6 +34,13 @@ export class AuthService {
 
     if (!isPasswordValid) {
       throw new UnauthorizedException("contraseña incorrecta");
+    }
+
+    if (
+      user.role === AllRole.PATIENT &&
+      (user.patient?.status === StatusPatient.CLOSED || user.patient?.status === StatusPatient.EMERGENCY)
+    ) {
+      throw new ForbiddenException("El usuario se encuentra hospitalizado o dado de alta.");
     }
 
     const payload = { email: user.email, id: user.id, role: user.role };
