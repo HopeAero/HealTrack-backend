@@ -24,6 +24,8 @@ export class ChatsService {
     private readonly userService: UsersService,
     private readonly authService: AuthService,
     private socketService: SocketService,
+    @InjectRepository(Message)
+    private readonly messaRepo: Repository<Message>,
   ) {}
 
   async getUserFromSocket(socket: Socket) {
@@ -105,15 +107,40 @@ export class ChatsService {
   }
 
   async getItems(user: User): Promise<Chat[]> {
-    const chats = await this.charRepo
+    let chats = await this.charRepo
       .createQueryBuilder("chat")
       .innerJoin("chats_users_user", "cu", 'chat.id = cu."chatsId"')
       .leftJoinAndSelect("chat.users", "users")
-      .leftJoinAndSelect("chat.last_message", "last_message")
-      .leftJoinAndSelect("last_message.user", "last_message_user")
       .leftJoinAndSelect("chat.created_by", "created_by")
       .where(`chat."createdById" = ${user.id} OR cu."userId" = ${user.id}`)
       .getMany();
+
+    for (const chat of chats) {
+      const lastMessage = await this.messaRepo
+        .createQueryBuilder("message")
+        .leftJoinAndSelect("message.user", "user")
+        .where("message.chatId = :chatId", { chatId: chat.id })
+        .orderBy("message.createdAt", "DESC")
+        .getOne();
+
+      chat.last_message = lastMessage;
+    }
+
+    chats = chats.sort((a, b) => {
+      if (a.last_message && b.last_message) {
+        if (a.last_message.createdAt > b.last_message.createdAt) {
+          return -1;
+        }
+        if (a.last_message.createdAt < b.last_message.createdAt) {
+          return 1;
+        }
+      } else if (a.last_message) {
+        return -1;
+      } else if (b.last_message) {
+        return 1;
+      }
+      return 0;
+    });
 
     return chats;
   }
@@ -152,10 +179,7 @@ export class ChatsService {
 
       const savedMessage = await this.messagesService.saveMessage(createdMessage);
 
-      if (chat) {
-        chat.last_message = savedMessage;
-        await this.charRepo.save(chat);
-      }
+      chat.last_message = savedMessage;
 
       await this.charRepo.save(chat);
 

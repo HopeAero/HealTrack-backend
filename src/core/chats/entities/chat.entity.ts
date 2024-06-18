@@ -1,10 +1,11 @@
-import { Message } from '@src/core/messagges/entities/messagge.entity';
-import { User } from '@src/core/users/entities/user.entity';
+import { Message } from "@src/core/messagges/entities/messagge.entity";
+import { User } from "@src/core/users/entities/user.entity";
 import {
   BaseEntity,
   Column,
   CreateDateColumn,
   Entity,
+  JoinColumn,
   JoinTable,
   ManyToMany,
   ManyToOne,
@@ -12,17 +13,17 @@ import {
   OneToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
-} from 'typeorm';
+} from "typeorm";
 
-@Entity({ name: 'chats' })
+@Entity({ name: "chats" })
 export class Chat extends BaseEntity {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column('text')
+  @Column("text")
   title: string;
 
-  @Column('int', { default: 0 })
+  @Column("int", { default: 0 })
   unread_messages_count: number;
 
   @ManyToOne(() => User, {
@@ -45,13 +46,17 @@ export class Chat extends BaseEntity {
   @OneToOne(() => Message, (message: Message) => message.chat)
   public last_message: Message;
 
-  @CreateDateColumn({ type: 'timestamptz' })
+  @CreateDateColumn({ type: "timestamptz" })
   createdAt: Date;
 
-  @UpdateDateColumn({ type: 'timestamptz' })
+  @UpdateDateColumn({ type: "timestamptz" })
   updatedAt: Date;
 
   constructor(data: Chat) {
     super();
   }
+}
+
+function OrderBy(arg0: string, arg1: string): (target: Chat, propertyKey: "last_message") => void {
+  throw new Error("Function not implemented.");
 }

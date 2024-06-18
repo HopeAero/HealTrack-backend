@@ -13,6 +13,7 @@ import { EmployeesModule } from "../employees/employees.module";
 import { MulterModule } from "@nestjs/platform-express";
 import { diskStorage } from "multer";
 import { extname } from "path";
+import { Message } from "../messagges/entities/messagge.entity";
 
 @Module({
   imports: [
@@ -25,7 +26,7 @@ import { extname } from "path";
         },
       }),
     }),
-    TypeOrmModule.forFeature([Chat]),
+    TypeOrmModule.forFeature([Chat, Message]),
     UsersModule,
     MessaggesModule,
     ExternalModule,
