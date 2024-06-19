@@ -24,5 +24,6 @@ import { extname } from "path";
   ],
   controllers: [ReportsController],
   providers: [ReportsService],
+  exports: [ReportsService],
 })
 export class ReportsModule {}

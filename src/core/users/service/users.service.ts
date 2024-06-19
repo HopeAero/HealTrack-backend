@@ -116,7 +116,7 @@ export class UsersService {
   async getByEmail(email: string) {
     return await this.userRepository.findOne({
       where: { email },
-      select: ["id", "email", "password", "role"],
+      select: ["id", "email", "password", "role", "name", "lastname"],
       relations: ["patient"],
     });
   }
