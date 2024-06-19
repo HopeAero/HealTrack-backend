@@ -117,7 +117,7 @@ export class UsersService {
     return await this.userRepository.findOne({
       where: { email },
       select: ["id", "email", "password", "role", "name", "lastname"],
-      relations: ["patient"],
+      relations: ["patient", "employee"],
     });
   }
 
