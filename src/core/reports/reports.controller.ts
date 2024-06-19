@@ -84,6 +84,16 @@ export class ReportsController {
     return this.reportsService.findOne(+id);
   }
 
+  @Get("user/:id")
+  async findByUser(@Param("id") id: number) {
+    return this.reportsService.findByUser(id);
+  }
+
+  @Get("employee/:id")
+  async findByEmployee(@Param("id") id: number) {
+    return this.reportsService.findByEmployee(id);
+  }
+
   @UseGuards(AuthGuard)
   @Post(":id/upload")
   @UseInterceptors(FileInterceptor("file", { storage }))

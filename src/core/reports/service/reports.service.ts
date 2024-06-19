@@ -107,6 +107,16 @@ export class ReportsService {
     });
   }
 
+  async findByEmployee(employeeId: number): Promise<ReportMedic[]> {
+    return this.reportRepository
+      .createQueryBuilder("report")
+      .innerJoinAndSelect("report.user", "user")
+      .innerJoinAndSelect("user.patient", "patient")
+      .innerJoin("patient.medic", "employee")
+      .where("employee.id = :employeeId", { employeeId })
+      .getMany();
+  }
+
   async remove(id: number): Promise<void> {
     const report = await this.reportRepository.findOne({
       where: { id },
