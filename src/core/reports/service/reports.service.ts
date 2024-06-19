@@ -100,6 +100,13 @@ export class ReportsService {
     });
   }
 
+  async findByUser(userId: number): Promise<ReportMedic[]> {
+    return this.reportRepository.find({
+      where: { user: { id: userId } },
+      order: { createdAt: "DESC" },
+    });
+  }
+
   async remove(id: number): Promise<void> {
     const report = await this.reportRepository.findOne({
       where: { id },

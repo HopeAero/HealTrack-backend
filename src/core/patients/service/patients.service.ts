@@ -5,7 +5,7 @@ import { UpdatePatientDto } from "../dto/update-patient.dto";
 import { Patient } from "../entities/patient.entity";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
-import * as bcryptjs from "bcryptjs";
+import { ReportsService } from "@src/core/reports/service/reports.service";
 import { Employee } from "@src/core/employees/entities/employee.entity";
 import { UsersService } from "@src/core/users/service/users.service";
 import { AllRole } from "@src/constants";
@@ -20,6 +20,7 @@ export class PatientsService {
     private readonly employeeRepository: Repository<Employee>,
 
     private readonly userService: UsersService,
+    private readonly reportService: ReportsService,
   ) {}
 
   async create(createPatientDto: CreatePatientDto) {
@@ -95,7 +96,9 @@ export class PatientsService {
       throw new NotFoundException(`Paciente con el ID ${id} no fue encontrado`);
     }
 
-    return found;
+    const patientReports = await this.reportService.findByUser(found.user.id);
+
+    return { ...found, patientReports };
   }
 
   async update(id: number, updatePatientDto: UpdatePatientDto) {
