@@ -86,4 +86,9 @@ export class ChatsController {
   getMessages(@Query() { offset, limit }, @Param("id") id: number): Promise<Message[]> {
     return this.chatsService.getMessages(id, offset, limit);
   }
+
+  @Get("exists/:userId1/:userId2")
+  async findChatBetweenUsers(@Param("userId1") userId1: number, @Param("userId2") userId2: number): Promise<Chat> {
+    return this.chatsService.findChatBetweenUsers(userId1, userId2);
+  }
 }

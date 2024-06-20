@@ -101,6 +101,13 @@ export class PatientsService {
     return { ...found, patientReports };
   }
 
+  async findByEmployee(employeeId: number) {
+    return this.patientRepository.find({
+      where: { medic: { id: employeeId } },
+      relations: ["medic", "user"],
+    });
+  }
+
   async update(id: number, updatePatientDto: UpdatePatientDto) {
     try {
       const patient = await this.findOne(id);

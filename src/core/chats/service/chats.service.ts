@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable } from "@nestjs/common";
+import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
 import { Chat } from "../entities/chat.entity";
 import { InjectRepository } from "@nestjs/typeorm";
 import { getConnection, Repository } from "typeorm";
@@ -194,7 +194,7 @@ export class ChatsService {
     });
 
     if (!chat) {
-      throw new BadRequestException("Chat not found.");
+      throw new NotFoundException("Chat not found.");
     }
 
     return await this.messagesService.getMessages(id, offset, limit, chat);
@@ -202,5 +202,32 @@ export class ChatsService {
 
   async savedMessage(message: MessageContent, user: User) {
     return await this.messagesService.setMessage(message, user);
+  }
+
+  async findChatBetweenUsers(userId1: number, userId2: number): Promise<Chat> {
+    if (userId1 === userId2) {
+      return null;
+    }
+
+    const user1Exists = await this.userService.findOne(userId1);
+    const user2Exists = await this.userService.findOne(userId2);
+
+    if (!user1Exists || !user2Exists) {
+      return null;
+    }
+
+    const chat = await this.charRepo
+      .createQueryBuilder("chat")
+      .leftJoin("chat.users", "user1", "user1.id = :userId1", { userId1 })
+      .leftJoin("chat.users", "user2", "user2.id = :userId2", { userId2 })
+      .leftJoin("chat.created_by", "creator")
+      .where("creator.id = :userId1 OR creator.id = :userId2", { userId1, userId2 })
+      .andWhere(
+        "(user1.id IS NOT NULL AND user2.id IS NOT NULL) OR (user1.id IS NOT NULL AND creator.id = :userId2) OR (user2.id IS NOT NULL AND creator.id = :userId1)",
+        { userId1, userId2 },
+      )
+      .getOne();
+
+    return chat;
   }
 }
