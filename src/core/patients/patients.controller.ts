@@ -26,6 +26,11 @@ export class PatientsController {
     return await this.patientsService.findOne(+id);
   }
 
+  @Get("employee/:id")
+  async findByEmployee(@Param("id") id: string) {
+    return await this.patientsService.findByEmployee(+id);
+  }
+
   @Patch(":id")
   async update(
     @Param("id") id: string,
