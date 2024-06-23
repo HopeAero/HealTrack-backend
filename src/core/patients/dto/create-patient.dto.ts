@@ -20,7 +20,6 @@ import {
 import { Type } from "class-transformer";
 import { Hospital } from "@src/core/employees/entities/hospital.entity";
 import { SurgeryType } from "@src/constants/surgery/type";
-import { isUniqueDb } from "@youba/nestjs-dbvalidator";
 import { CreateHospitalDto } from "@src/core/employees/dto/hospital.dto";
 import { StatusPatient } from "@src/constants/status/statusPatient";
 import { CreateUserDto } from "@src/core/users/dto/create-user.dto";
@@ -31,7 +30,7 @@ export class CreatePatientDto {
   @IsNumber()
   age: number;
 
-  @ApiProperty({ example: "El culo de pzo", required: false })
+  @ApiProperty({ example: "Avenida", required: false })
   @IsOptional()
   @IsString()
   address: string;
