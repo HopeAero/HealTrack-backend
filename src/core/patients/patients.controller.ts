@@ -1,7 +1,7 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Response } from "@nestjs/common";
+import { Controller, Get, Post, Body, Patch, Param, Delete, Response, Query } from "@nestjs/common";
+import { StatusPatient } from "@src/constants/status/statusPatient";
 import { UpdatePatientStateDto } from "./dto/update-patient-state.dto";
 import { PatientsService } from "./service/patients.service";
-import { CreatePatientDto } from "./dto/create-patient.dto";
 import { UpdatePatientDto } from "./dto/update-patient.dto";
 import { ApiTags } from "@nestjs/swagger";
 import * as express from "express";
@@ -12,8 +12,8 @@ export class PatientsController {
   constructor(private readonly patientsService: PatientsService) {}
 
   @Get()
-  async findAll() {
-    return await this.patientsService.findAll();
+  async findAll(@Query("status") status: StatusPatient) {
+    return await this.patientsService.findAll(status);
   }
 
   @Get(":id")
@@ -22,8 +22,8 @@ export class PatientsController {
   }
 
   @Get("employee/:id")
-  async findByEmployee(@Param("id") id: string) {
-    return await this.patientsService.findByEmployee(+id);
+  async findByEmployee(@Param("id") id: string, @Query("status") status: StatusPatient) {
+    return await this.patientsService.findByEmployee(+id, status);
   }
 
   @Patch(":id")
@@ -70,6 +70,7 @@ export class PatientsController {
         message: "No se ha podido actualizar el estado del paciente",
       });
     } catch (error) {
+      console.log(error);
       return response.status(error.status).json({
         message: error.message,
       });

@@ -9,6 +9,7 @@ import { ReportsService } from "@src/core/reports/service/reports.service";
 import { Employee } from "@src/core/employees/entities/employee.entity";
 import { UsersService } from "@src/core/users/service/users.service";
 import { AllRole } from "@src/constants";
+import { StatusPatient } from "@src/constants/status/statusPatient";
 
 @Injectable()
 export class PatientsService {
@@ -83,8 +84,10 @@ export class PatientsService {
     }
   }
 
-  async findAll() {
+  async findAll(status?: StatusPatient) {
+    const whereCondition = status ? { status } : {};
     return await this.patientRepository.find({
+      where: whereCondition,
       relations: ["medic", "user"],
     });
   }
@@ -101,9 +104,10 @@ export class PatientsService {
     return { ...found, patientReports };
   }
 
-  async findByEmployee(employeeId: number) {
+  async findByEmployee(employeeId: number, status?: StatusPatient) {
+    const whereCondition = status ? { medic: { id: employeeId }, status } : { medic: { id: employeeId } };
     return this.patientRepository.find({
-      where: { medic: { id: employeeId } },
+      where: whereCondition,
       relations: ["medic", "user"],
     });
   }

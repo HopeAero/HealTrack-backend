@@ -1,5 +1,6 @@
 import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
 import { CreateReportDto } from "../dto/create-report.dto";
+import { ReportFilterDto } from "../dto/report-filter.dto";
 import { InjectRepository } from "@nestjs/typeorm";
 import { ReportMedic } from "../entities/report.entity";
 import { Repository } from "typeorm";
@@ -90,8 +91,27 @@ export class ReportsService {
     return report;
   }
 
-  async findAll(): Promise<ReportMedic[]> {
-    return this.reportRepository.find();
+  async findAll(filterDto: ReportFilterDto): Promise<ReportMedic[]> {
+    const { startDate, endDate, userId } = filterDto;
+
+    const query = this.reportRepository.createQueryBuilder("report");
+
+    if (startDate) {
+      query.andWhere("report.createdAt >= :startDate", { startDate });
+    }
+
+    if (endDate) {
+      query.andWhere("report.createdAt <= :endDate", { endDate });
+    }
+
+    if (userId) {
+      query.andWhere("report.user.id = :userId", { userId });
+    }
+
+    query.orderBy("report.createdAt", "DESC");
+
+    const reports = await query.getMany();
+    return reports;
   }
 
   async findOne(id: number): Promise<ReportMedic> {
@@ -100,21 +120,47 @@ export class ReportsService {
     });
   }
 
-  async findByUser(userId: number): Promise<ReportMedic[]> {
-    return this.reportRepository.find({
-      where: { user: { id: userId } },
-      order: { createdAt: "DESC" },
-    });
+  async findByUser(userId: number, filterDto?: ReportFilterDto): Promise<ReportMedic[]> {
+    const query = this.reportRepository.createQueryBuilder("report").where("report.user.id = :userId", { userId });
+
+    if (filterDto?.startDate) {
+      query.andWhere("report.createdAt >= :startDate", { startDate: filterDto.startDate });
+    }
+
+    if (filterDto?.endDate) {
+      query.andWhere("report.createdAt <= :endDate", { endDate: filterDto.endDate });
+    }
+
+    query.orderBy("report.createdAt", "DESC");
+
+    const reports = await query.getMany();
+    return reports;
   }
 
-  async findByEmployee(employeeId: number): Promise<ReportMedic[]> {
-    return this.reportRepository
+  async findByEmployee(employeeId: number, filterDto?: ReportFilterDto): Promise<ReportMedic[]> {
+    const query = this.reportRepository
       .createQueryBuilder("report")
       .innerJoinAndSelect("report.user", "user")
       .innerJoinAndSelect("user.patient", "patient")
       .innerJoin("patient.medic", "employee")
-      .where("employee.id = :employeeId", { employeeId })
-      .getMany();
+      .where("employee.id = :employeeId", { employeeId });
+
+    if (filterDto?.startDate) {
+      query.andWhere("report.createdAt >= :startDate", { startDate: filterDto.startDate });
+    }
+
+    if (filterDto?.endDate) {
+      query.andWhere("report.createdAt <= :endDate", { endDate: filterDto.endDate });
+    }
+
+    if (filterDto?.userId) {
+      query.andWhere("report.user.id = :userId", { userId: filterDto.userId });
+    }
+
+    query.orderBy("report.createdAt", "DESC");
+
+    const reports = await query.getMany();
+    return reports;
   }
 
   async remove(id: number): Promise<void> {

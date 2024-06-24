@@ -13,6 +13,7 @@ import {
   FileTypeValidator,
   MaxFileSizeValidator,
   UseInterceptors,
+  Query,
 } from "@nestjs/common";
 import { CreateReportDto } from "./dto/create-report.dto";
 import { ReportsService } from "./service/reports.service";
@@ -26,6 +27,8 @@ import { AllRole } from "@src/constants";
 import { FileInterceptor } from "@nestjs/platform-express";
 import { diskStorage } from "multer";
 import { extname } from "path";
+import { ReportFilterDto } from "./dto/report-filter.dto";
+import { ReportMedic } from "./entities/report.entity";
 
 const storage = diskStorage({
   destination: "./upload",
@@ -74,8 +77,8 @@ export class ReportsController {
 
   @UseGuards(AuthGuard)
   @Get()
-  async findAll() {
-    return this.reportsService.findAll();
+  async findAll(@Query() filterDto: ReportFilterDto): Promise<ReportMedic[]> {
+    return this.reportsService.findAll(filterDto);
   }
 
   @UseGuards(AuthGuard)
@@ -84,14 +87,16 @@ export class ReportsController {
     return this.reportsService.findOne(+id);
   }
 
+  @UseGuards(AuthGuard)
   @Get("user/:id")
-  async findByUser(@Param("id") id: number) {
-    return this.reportsService.findByUser(id);
+  async findByUser(@Param("id") id: number, @Query() filterDto: ReportFilterDto) {
+    return this.reportsService.findByUser(id, filterDto);
   }
 
+  @UseGuards(AuthGuard)
   @Get("employee/:id")
-  async findByEmployee(@Param("id") id: number) {
-    return this.reportsService.findByEmployee(id);
+  async findByEmployee(@Param("id") id: number, @Query() filterDto: ReportFilterDto) {
+    return this.reportsService.findByEmployee(id, filterDto);
   }
 
   @UseGuards(AuthGuard)
