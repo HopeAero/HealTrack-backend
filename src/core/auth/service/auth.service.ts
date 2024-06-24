@@ -36,10 +36,7 @@ export class AuthService {
       throw new UnauthorizedException("contraseña incorrecta");
     }
 
-    if (
-      user.role === AllRole.PATIENT &&
-      (user.patient?.status === StatusPatient.CLOSED || user.patient?.status === StatusPatient.EMERGENCY)
-    ) {
+    if (user.role === AllRole.PATIENT && user.patient?.status !== StatusPatient.ACTIVE) {
       throw new ForbiddenException("El usuario se encuentra hospitalizado o dado de alta.");
     }
 
