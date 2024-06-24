@@ -11,11 +11,6 @@ import * as express from "express";
 export class PatientsController {
   constructor(private readonly patientsService: PatientsService) {}
 
-  @Post()
-  async create(@Body() createPatientDto: CreatePatientDto) {
-    return await this.patientsService.create(createPatientDto);
-  }
-
   @Get()
   async findAll() {
     return await this.patientsService.findAll();

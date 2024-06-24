@@ -10,18 +10,6 @@ import * as express from "express";
 export class EmployeesController {
   constructor(private readonly employeesService: EmployeesService) {}
 
-  @Post()
-  async create(@Body() createEmployeeDto: CreateEmployeeDto) {
-    try {
-      return this.employeesService.create(createEmployeeDto);
-    } catch (error) {
-      return {
-        status: error.status,
-        message: error.message,
-      };
-    }
-  }
-
   @Get()
   async findAll() {
     return this.employeesService.findAll();
