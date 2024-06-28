@@ -94,7 +94,10 @@ export class ReportsService {
   async findAll(filterDto: ReportFilterDto): Promise<ReportMedic[]> {
     const { startDate, endDate, userId } = filterDto;
 
-    const query = this.reportRepository.createQueryBuilder("report");
+    const query = this.reportRepository
+      .createQueryBuilder("report")
+      .innerJoinAndSelect("report.user", "user")
+      .innerJoinAndSelect("user.patient", "patient");
 
     if (startDate) {
       query.andWhere("report.createdAt >= :startDate", { startDate });
@@ -121,7 +124,11 @@ export class ReportsService {
   }
 
   async findByUser(userId: number, filterDto?: ReportFilterDto): Promise<ReportMedic[]> {
-    const query = this.reportRepository.createQueryBuilder("report").where("report.user.id = :userId", { userId });
+    const query = this.reportRepository
+      .createQueryBuilder("report")
+      .innerJoinAndSelect("report.user", "user")
+      .innerJoinAndSelect("user.patient", "patient")
+      .where("report.user.id = :userId", { userId });
 
     if (filterDto?.startDate) {
       query.andWhere("report.createdAt >= :startDate", { startDate: filterDto.startDate });
