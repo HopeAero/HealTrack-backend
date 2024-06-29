@@ -37,6 +37,12 @@ export class PatientsService {
         relations: ["user"],
       });
 
+      const asistant = await this.employeeRepository.findOne({
+        where: {
+          id: createPatientDto.asistant,
+        },
+      });
+
       if (!employee) {
         throw new NotFoundException("No se encontro el medico con el id proporcionado");
       }
@@ -47,6 +53,10 @@ export class PatientsService {
 
       if (createPatientDto.user.role !== AllRole.PATIENT) {
         throw new BadRequestException("El rol del usuario no es valido");
+      }
+
+      if (!asistant) {
+        throw new NotFoundException("No se encontro el asistente con el id proporcionado");
       }
 
       const { user, ...data } = createPatientDto;
@@ -63,6 +73,7 @@ export class PatientsService {
       patient.surgeryType = createPatientDto.surgeryType;
       patient.automaticTracking = createPatientDto.automaticTracking;
       patient.status = createPatientDto.status;
+      patient.asistant = asistant;
 
       await queryRunner.manager.save(Patient, patient);
 
@@ -72,6 +83,7 @@ export class PatientsService {
 
       return userCreate;
     } catch (error) {
+      console.log(error);
       await queryRunner.rollbackTransaction();
       throw new HttpException(error.message, error.status);
     } finally {
@@ -83,7 +95,7 @@ export class PatientsService {
     const whereCondition = status ? { status } : {};
     return await this.patientRepository.find({
       where: whereCondition,
-      relations: ["medic", "user"],
+      relations: ["medic", "asistant", "user"],
       order: {
         id: "ASC",
       },
@@ -103,10 +115,16 @@ export class PatientsService {
   }
 
   async findByEmployee(employeeId: number, status?: StatusPatient) {
-    const whereCondition = status ? { medic: { id: employeeId }, status } : { medic: { id: employeeId } };
+    const whereCondition = status
+      ? [
+          { medic: { id: employeeId }, status },
+          { asistant: { id: employeeId }, status },
+        ]
+      : [{ medic: { id: employeeId } }, { asistant: { id: employeeId } }];
+
     return this.patientRepository.find({
       where: whereCondition,
-      relations: ["medic", "user"],
+      relations: ["medic", "asistant", "user"],
       order: {
         id: "ASC",
       },

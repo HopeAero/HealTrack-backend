@@ -81,6 +81,8 @@ export class CreatePatientDto {
   @IsNumber()
   medicId: number;
 
+  asistant: number;
+
   @ApiProperty({ type: CreateUserDto, required: true })
   @IsNotEmpty()
   @Type(() => CreateUserDto)

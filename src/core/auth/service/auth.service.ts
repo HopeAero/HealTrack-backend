@@ -10,6 +10,7 @@ import { CreatePatientDto } from "@src/core/patients/dto/create-patient.dto";
 import { UsersService } from "@src/core/users/service/users.service";
 import { envData } from "@src/config/typeorm";
 import { StatusPatient } from "@src/constants/status/statusPatient";
+import { UserActiveInterface } from "@src/common/interface/user-active-interface";
 
 @Injectable()
 export class AuthService {
@@ -54,18 +55,22 @@ export class AuthService {
       patient: user.patient?.id,
     };
   }
+  async registerPatient(createPatientDto: CreatePatientDto, user: UserActiveInterface) {
+    const userExist = await this.userService.getByEmail(createPatientDto.user.email);
 
-  async registerPatient(createPatientDto: CreatePatientDto) {
-    const user = await this.userService.getByEmail(createPatientDto.user.email);
-
-    if (user) {
+    if (userExist) {
       throw new BadRequestException("correo ya registrado");
+    }
+
+    if (user.role !== AllRole.ASSISTANT) {
+      throw new ForbiddenException("El usuario no tiene permisos para registrar pacientes");
     }
 
     const password = await bcryptjs.hash(createPatientDto.user.password, 10);
 
     const patient = await this.patientService.create({
       ...createPatientDto,
+      asistant: user.id,
       user: { ...createPatientDto.user, password, role: AllRole.PATIENT },
     });
 
@@ -79,9 +84,9 @@ export class AuthService {
   }
 
   async registerEmployee(createEmployeeDto: CreateEmployeeDto) {
-    const user = await this.userService.getByEmail(createEmployeeDto.user.email);
+    const userExist = await this.userService.getByEmail(createEmployeeDto.user.email);
 
-    if (user) {
+    if (userExist) {
       throw new BadRequestException("correo ya registrado");
     }
 

@@ -70,4 +70,8 @@ export class Patient {
   @ManyToOne(() => Employee, (employee) => employee.patients)
   @JoinColumn({ name: "employeeId" })
   medic: Employee;
+
+  @ManyToOne(() => Employee, (employee) => employee.patients)
+  @JoinColumn({ name: "employeeId" })
+  asistant: Employee;
 }
