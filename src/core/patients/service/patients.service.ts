@@ -122,7 +122,7 @@ export class PatientsService {
         ]
       : [{ medic: { id: employeeId } }, { asistant: { id: employeeId } }];
 
-    return this.patientRepository.find({
+    return await this.patientRepository.find({
       where: whereCondition,
       relations: ["medic", "asistant", "user"],
       order: {
