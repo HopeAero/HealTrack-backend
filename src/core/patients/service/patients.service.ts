@@ -4,12 +4,13 @@ import { CreatePatientDto } from "../dto/create-patient.dto";
 import { UpdatePatientDto } from "../dto/update-patient.dto";
 import { Patient } from "../entities/patient.entity";
 import { InjectRepository } from "@nestjs/typeorm";
-import { Repository } from "typeorm";
+import { DataSource, Equal, Repository } from "typeorm";
 import { ReportsService } from "@src/core/reports/service/reports.service";
 import { Employee } from "@src/core/employees/entities/employee.entity";
 import { UsersService } from "@src/core/users/service/users.service";
 import { AllRole } from "@src/constants";
 import { StatusPatient } from "@src/constants/status/statusPatient";
+import { User } from "@src/core/users/entities/user.entity";
 
 @Injectable()
 export class PatientsService {
@@ -19,12 +20,15 @@ export class PatientsService {
 
     @InjectRepository(Employee)
     private readonly employeeRepository: Repository<Employee>,
-
+    private dataSource: DataSource,
     private readonly userService: UsersService,
     private readonly reportService: ReportsService,
   ) {}
 
   async create(createPatientDto: CreatePatientDto) {
+    const queryRunner = this.dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
     try {
       const employee = await this.employeeRepository.findOne({
         where: {
@@ -35,17 +39,6 @@ export class PatientsService {
 
       if (!employee) {
         throw new NotFoundException("No se encontro el medico con el id proporcionado");
-      }
-
-      const exists = await this.numberPhoneExists(createPatientDto.personalPhone);
-      const existsHome = await this.numberPhoneExists(createPatientDto.homePhone);
-
-      if (exists) {
-        throw new BadRequestException("Ya existe un paciente con este numero de telefono personal");
-      }
-
-      if (existsHome) {
-        throw new BadRequestException("Ya existe un paciente con este numero de telefono de casa");
       }
 
       if (employee.user.role !== AllRole.SPECIALIST) {
@@ -71,16 +64,18 @@ export class PatientsService {
       patient.automaticTracking = createPatientDto.automaticTracking;
       patient.status = createPatientDto.status;
 
-      await this.patientRepository.save(patient);
+      await queryRunner.manager.save(Patient, patient);
 
-      const userCreate = await this.userService.create({
-        ...user,
-        patient: patient,
-      });
+      const userCreate = await queryRunner.manager.save(User, user);
+
+      await queryRunner.commitTransaction();
 
       return userCreate;
     } catch (error) {
+      await queryRunner.rollbackTransaction();
       throw new HttpException(error.message, error.status);
+    } finally {
+      await queryRunner.release();
     }
   }
 
@@ -93,7 +88,7 @@ export class PatientsService {
   }
 
   async findOne(id: number) {
-    const found = await this.patientRepository.findOne({ where: { id }, relations: ["medic", "user"] });
+    const found = await this.patientRepository.findOne({ where: { id: Equal(id) }, relations: ["medic", "user"] });
 
     if (!found) {
       throw new NotFoundException(`Paciente con el ID ${id} no fue encontrado`);

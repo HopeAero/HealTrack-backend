@@ -1,6 +1,6 @@
 import { NestFactory } from "@nestjs/core";
 import { AppModule } from "./app.module";
-import { ValidationPipe } from "@nestjs/common";
+import { BadRequestException, ValidationPipe } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
 import { json } from "express";
 import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
@@ -24,9 +24,30 @@ async function bootstrap() {
 
   app.useGlobalPipes(
     new ValidationPipe({
+      exceptionFactory: (errors) => {
+        function extractErrors(errors) {
+          return errors.reduce((acc, error) => {
+            if (error.children && error.children.length > 0) {
+              acc.push(...extractErrors(error.children));
+            } else {
+              acc.push({
+                property: error.property,
+                message: error.constraints
+                  ? error.constraints[Object.keys(error.constraints)[0]]
+                  : "Error no especificado",
+              });
+            }
+            return acc;
+          }, []);
+        }
+
+        const result = extractErrors(errors);
+        return new BadRequestException(result);
+      },
+      stopAtFirstError: true,
+      transform: true,
       whitelist: true,
       forbidNonWhitelisted: true,
-      transform: true,
     }),
   );
 

@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsNumber, ValidateNested } from "class-validator";
+import { IsDefined, IsNotEmpty, IsNumber, ValidateNested } from "class-validator";
 import { Type } from "class-transformer";
 import { ApiProperty } from "@nestjs/swagger";
 import { Hospital } from "../entities/hospital.entity";
@@ -16,5 +16,6 @@ export class CreateEmployeeDto {
   @IsNotEmpty()
   @Type(() => CreateUserDto)
   @ValidateNested()
+  @IsDefined()
   user: CreateUserDto;
 }

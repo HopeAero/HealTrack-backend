@@ -2,38 +2,50 @@ import { BadRequestException, HttpException, HttpStatus, Injectable, NotFoundExc
 import { CreateEmployeeDto } from "../dto/create-employee.dto";
 import { UpdateEmployeeDto } from "../dto/update-employee.dto";
 import { Employee } from "../entities/employee.entity";
-import { Repository } from "typeorm";
+import { DataSource, Repository } from "typeorm";
 import { InjectRepository } from "@nestjs/typeorm";
 import { UsersService } from "@src/core/users/service/users.service";
 import { AllRole } from "@src/constants";
 import * as bcryptjs from "bcryptjs";
+import { User } from "@src/core/users/entities/user.entity";
 
 @Injectable()
 export class EmployeesService {
   constructor(
     @InjectRepository(Employee)
     private readonly employeeRepository: Repository<Employee>,
-
+    private dataSource: DataSource,
     private readonly userService: UsersService,
   ) {}
   async create(createEmployeeDto: CreateEmployeeDto) {
-    if (
-      createEmployeeDto.user.role !== AllRole.SPECIALIST &&
-      createEmployeeDto.user.role !== AllRole.ADMIN &&
-      createEmployeeDto.user.role !== AllRole.ASSISTANT
-    ) {
-      throw new NotFoundException("El rol del empleado no es valido");
+    const queryRunner = this.dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+    try {
+      if (
+        createEmployeeDto.user.role !== AllRole.SPECIALIST &&
+        createEmployeeDto.user.role !== AllRole.ADMIN &&
+        createEmployeeDto.user.role !== AllRole.ASSISTANT
+      ) {
+        throw new NotFoundException("El rol del empleado no es valido");
+      }
+
+      const employee = new Employee();
+      employee.hospital = createEmployeeDto.hospital;
+
+      await queryRunner.manager.save(Employee, employee);
+
+      const userCreate = await queryRunner.manager.save(User, { ...createEmployeeDto.user, employee: employee });
+
+      await queryRunner.commitTransaction();
+
+      return userCreate;
+    } catch (error) {
+      await queryRunner.rollbackTransaction();
+      throw new HttpException(`Error interno ${error.message}`, error.status || HttpStatus.INTERNAL_SERVER_ERROR);
+    } finally {
+      await queryRunner.release();
     }
-
-    const employee = new Employee();
-    employee.hospital = createEmployeeDto.hospital;
-
-    await this.employeeRepository.save(employee);
-
-    return await this.userService.create({
-      ...createEmployeeDto.user,
-      employee: employee,
-    });
   }
 
   async findAll() {

@@ -85,5 +85,6 @@ export class CreatePatientDto {
   @IsNotEmpty()
   @Type(() => CreateUserDto)
   @ValidateNested()
+  @IsDefined()
   user: CreateUserDto;
 }
