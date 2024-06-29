@@ -8,6 +8,7 @@ import { UsersService } from "@src/core/users/service/users.service";
 import { UserActiveInterface } from "@src/common/interface/user-active-interface";
 import { AllRole } from "@src/constants";
 import { envData } from "@src/config/typeorm";
+import { PaginatedResult } from "@src/constants/paginate/type";
 
 @Injectable()
 export class ReportsService {
@@ -91,8 +92,8 @@ export class ReportsService {
     return report;
   }
 
-  async findAll(filterDto: ReportFilterDto): Promise<ReportMedic[]> {
-    const { startDate, endDate, userId } = filterDto;
+  async findAll(filterDto: ReportFilterDto): Promise<PaginatedResult<ReportMedic>> {
+    const { startDate, endDate, userId, page = 1, limit = 5 } = filterDto;
 
     const query = this.reportRepository
       .createQueryBuilder("report")
@@ -113,8 +114,27 @@ export class ReportsService {
 
     query.orderBy("report.createdAt", "DESC");
 
+    // Obtener el total de resultados sin paginación
+    const total = await query.getCount();
+
+    // Paginación
+    const skip = (page - 1) * limit;
+    query.skip(skip).take(limit);
+
     const reports = await query.getMany();
-    return reports;
+
+    // Calcular el total de páginas
+    const totalPages = Math.ceil(total / limit);
+
+    return {
+      data: reports,
+      paginationData: {
+        total,
+        page: Number(page),
+        limit: Number(limit),
+        totalPages,
+      },
+    };
   }
 
   async findOne(id: number): Promise<ReportMedic> {
@@ -123,28 +143,51 @@ export class ReportsService {
     });
   }
 
-  async findByUser(userId: number, filterDto?: ReportFilterDto): Promise<ReportMedic[]> {
+  async findByUser(userId: number, filterDto?: ReportFilterDto): Promise<PaginatedResult<ReportMedic>> {
+    const { startDate, endDate, page = 1, limit = 5 } = filterDto || {};
+
     const query = this.reportRepository
       .createQueryBuilder("report")
       .innerJoinAndSelect("report.user", "user")
       .innerJoinAndSelect("user.patient", "patient")
       .where("report.user.id = :userId", { userId });
 
-    if (filterDto?.startDate) {
-      query.andWhere("report.createdAt >= :startDate", { startDate: filterDto.startDate });
+    if (startDate) {
+      query.andWhere("report.createdAt >= :startDate", { startDate });
     }
 
-    if (filterDto?.endDate) {
-      query.andWhere("report.createdAt <= :endDate", { endDate: filterDto.endDate });
+    if (endDate) {
+      query.andWhere("report.createdAt <= :endDate", { endDate });
     }
 
     query.orderBy("report.createdAt", "DESC");
 
+    // Obtener el total de resultados sin paginación
+    const total = await query.getCount();
+
+    // Paginación
+    const skip = (page - 1) * limit;
+    query.skip(skip).take(limit);
+
     const reports = await query.getMany();
-    return reports;
+
+    // Calcular el total de páginas
+    const totalPages = Math.ceil(total / limit);
+
+    return {
+      data: reports,
+      paginationData: {
+        total,
+        page: Number(page),
+        limit: Number(limit),
+        totalPages,
+      },
+    };
   }
 
-  async findByEmployee(employeeId: number, filterDto?: ReportFilterDto): Promise<ReportMedic[]> {
+  async findByEmployee(employeeId: number, filterDto?: ReportFilterDto): Promise<PaginatedResult<ReportMedic>> {
+    const { startDate, endDate, userId, page = 1, limit = 5 } = filterDto || {};
+
     const query = this.reportRepository
       .createQueryBuilder("report")
       .innerJoinAndSelect("report.user", "user")
@@ -152,22 +195,41 @@ export class ReportsService {
       .innerJoin("patient.medic", "employee")
       .where("employee.id = :employeeId", { employeeId });
 
-    if (filterDto?.startDate) {
-      query.andWhere("report.createdAt >= :startDate", { startDate: filterDto.startDate });
+    if (startDate) {
+      query.andWhere("report.createdAt >= :startDate", { startDate });
     }
 
-    if (filterDto?.endDate) {
-      query.andWhere("report.createdAt <= :endDate", { endDate: filterDto.endDate });
+    if (endDate) {
+      query.andWhere("report.createdAt <= :endDate", { endDate });
     }
 
-    if (filterDto?.userId) {
-      query.andWhere("report.user.id = :userId", { userId: filterDto.userId });
+    if (userId) {
+      query.andWhere("report.user.id = :userId", { userId });
     }
 
     query.orderBy("report.createdAt", "DESC");
 
+    // Obtener el total de resultados sin paginación
+    const total = await query.getCount();
+
+    // Paginación
+    const skip = (page - 1) * limit;
+    query.skip(skip).take(limit);
+
     const reports = await query.getMany();
-    return reports;
+
+    // Calcular el total de páginas
+    const totalPages = Math.ceil(total / limit);
+
+    return {
+      data: reports,
+      paginationData: {
+        total,
+        page: Number(page),
+        limit: Number(limit),
+        totalPages,
+      },
+    };
   }
 
   async remove(id: number): Promise<void> {

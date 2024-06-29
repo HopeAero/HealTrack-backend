@@ -1,5 +1,5 @@
-import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
-import { IsOptional, IsString, IsDateString } from "class-validator";
+import { ApiPropertyOptional } from "@nestjs/swagger";
+import { IsOptional, IsString, IsDateString, IsInt, Min } from "class-validator";
 
 export class ReportFilterDto {
   @ApiPropertyOptional({ description: "Fecha de inicio para filtrar", type: String, format: "date-time" })
@@ -16,4 +16,14 @@ export class ReportFilterDto {
   @IsOptional()
   @IsString()
   userId?: string;
+
+  @ApiPropertyOptional({ description: "Número de página para la paginación", example: 1 })
+  @IsOptional()
+  @IsString()
+  page?: number;
+
+  @ApiPropertyOptional({ description: "Cantidad de resultados por página", example: 10 })
+  @IsOptional()
+  @IsString()
+  limit?: number;
 }

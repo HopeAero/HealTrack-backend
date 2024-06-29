@@ -218,14 +218,8 @@ export class ChatsService {
 
     const chat = await this.charRepo
       .createQueryBuilder("chat")
-      .leftJoin("chat.users", "user1", "user1.id = :userId1", { userId1 })
-      .leftJoin("chat.users", "user2", "user2.id = :userId2", { userId2 })
-      .leftJoin("chat.created_by", "creator")
-      .where("creator.id = :userId1 OR creator.id = :userId2", { userId1, userId2 })
-      .andWhere(
-        "(user1.id IS NOT NULL AND user2.id IS NOT NULL) OR (user1.id IS NOT NULL AND creator.id = :userId2) OR (user2.id IS NOT NULL AND creator.id = :userId1)",
-        { userId1, userId2 },
-      )
+      .innerJoin("chat.users", "user1", "user1.id = :userId1", { userId1 })
+      .innerJoin("chat.users", "user2", "user2.id = :userId2", { userId2 })
       .getOne();
 
     return chat;

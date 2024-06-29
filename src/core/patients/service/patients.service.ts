@@ -84,6 +84,9 @@ export class PatientsService {
     return await this.patientRepository.find({
       where: whereCondition,
       relations: ["medic", "user"],
+      order: {
+        id: "ASC",
+      },
     });
   }
 
@@ -104,6 +107,9 @@ export class PatientsService {
     return this.patientRepository.find({
       where: whereCondition,
       relations: ["medic", "user"],
+      order: {
+        id: "ASC",
+      },
     });
   }
 

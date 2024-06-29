@@ -51,6 +51,9 @@ export class EmployeesService {
   async findAll() {
     return await this.employeeRepository.find({
       relations: ["user"],
+      order: {
+        id: "ASC",
+      },
     });
   }
 

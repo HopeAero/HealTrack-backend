@@ -29,6 +29,7 @@ import { diskStorage } from "multer";
 import { extname } from "path";
 import { ReportFilterDto } from "./dto/report-filter.dto";
 import { ReportMedic } from "./entities/report.entity";
+import { PaginatedResult } from "@src/constants/paginate/type";
 
 const storage = diskStorage({
   destination: "./upload",
@@ -77,7 +78,7 @@ export class ReportsController {
 
   @UseGuards(AuthGuard)
   @Get()
-  async findAll(@Query() filterDto: ReportFilterDto): Promise<ReportMedic[]> {
+  async findAll(@Query() filterDto: ReportFilterDto): Promise<PaginatedResult<ReportMedic>> {
     return this.reportsService.findAll(filterDto);
   }
 
