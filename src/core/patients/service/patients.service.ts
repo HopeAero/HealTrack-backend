@@ -66,7 +66,7 @@ export class PatientsService {
 
       await queryRunner.manager.save(Patient, patient);
 
-      const userCreate = await queryRunner.manager.save(User, user);
+      const userCreate = await queryRunner.manager.save(User, { ...user, patient: patient });
 
       await queryRunner.commitTransaction();
 
