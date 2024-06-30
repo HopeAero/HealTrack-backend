@@ -38,7 +38,7 @@ export class PatientsService {
 
       const asistant = await this.employeeRepository.findOne({
         where: {
-          id: createPatientDto.asistant,
+          user: { id: createPatientDto.asistant },
         },
       });
 
