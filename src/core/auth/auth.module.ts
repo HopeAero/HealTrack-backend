@@ -5,9 +5,12 @@ import { JwtModule } from "@nestjs/jwt";
 import { PatientsModule } from "../patients/patients.module";
 import { EmployeesModule } from "../employees/employees.module";
 import { UsersModule } from "../users/users.module";
+import { TypeOrmModule } from "@nestjs/typeorm";
+import { Chat } from "../chats/entities/chat.entity";
 
 @Module({
   imports: [
+    TypeOrmModule.forFeature([Chat]),
     PatientsModule,
     EmployeesModule,
     UsersModule,
