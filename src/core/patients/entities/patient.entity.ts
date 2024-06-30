@@ -72,5 +72,6 @@ export class Patient {
   medic: Employee;
 
   @ManyToOne(() => Employee, (employee) => employee.patients)
+  @JoinColumn({ name: "asistantId" })
   asistant: Employee;
 }
