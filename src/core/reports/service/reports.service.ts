@@ -193,7 +193,8 @@ export class ReportsService {
       .innerJoinAndSelect("report.user", "user")
       .innerJoinAndSelect("user.patient", "patient")
       .innerJoin("patient.medic", "employee")
-      .where("employee.id = :employeeId", { employeeId });
+      .innerJoin("patient.asistant", "asistant")
+      .where("medic.id = :employeeId OR asistant.id = :employeeId", { employeeId });
 
     if (startDate) {
       query.andWhere("report.createdAt >= :startDate", { startDate });
