@@ -25,4 +25,7 @@ export class Employee {
 
   @OneToMany(() => Patient, (patient) => patient.medic)
   patients: Patient[];
+
+  @OneToMany(() => Patient, (patient) => patient.asistant)
+  asistants: Patient[];
 }
