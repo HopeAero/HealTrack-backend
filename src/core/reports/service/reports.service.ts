@@ -3,7 +3,7 @@ import { CreateReportDto } from "../dto/create-report.dto";
 import { ReportFilterDto } from "../dto/report-filter.dto";
 import { InjectRepository } from "@nestjs/typeorm";
 import { ReportMedic } from "../entities/report.entity";
-import { Repository } from "typeorm";
+import { Between, LessThanOrEqual, Repository } from "typeorm";
 import { UsersService } from "@src/core/users/service/users.service";
 import { UserActiveInterface } from "@src/common/interface/user-active-interface";
 import { AllRole } from "@src/constants";
@@ -242,5 +242,41 @@ export class ReportsService {
     }
 
     await this.reportRepository.softDelete(id);
+  }
+
+  async hasReported(userId): Promise<boolean> {
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 6);
+    const sixAM = new Date(today);
+
+    let report: ReportMedic;
+
+    if (now >= sixAM) {
+      // Si la hora actual es mayor a 6 am, busca un reporte de hoy mayor a 6 am
+      report = await this.reportRepository.findOne({
+        where: {
+          createdAt: Between(sixAM, now),
+          user: { id: userId },
+        },
+      });
+    } else {
+      // Si la hora actual es menor a 6 am, busca un reporte de ayer o de hoy antes de las 6 am
+      const yesterdaySixAM = new Date(today.setDate(today.getDate() - 1));
+
+      report = await this.reportRepository.findOne({
+        where: [
+          {
+            createdAt: Between(yesterdaySixAM, sixAM),
+            user: { id: userId },
+          },
+          {
+            createdAt: LessThanOrEqual(sixAM),
+            user: { id: userId },
+          },
+        ],
+      });
+    }
+
+    return !!report;
   }
 }

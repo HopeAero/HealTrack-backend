@@ -83,6 +83,13 @@ export class ReportsController {
   }
 
   @UseGuards(AuthGuard)
+  @Get("reported")
+  async hasReported(@ActiveUser() user: UserActiveInterface): Promise<Boolean> {
+    console.log(user.id);
+    return this.reportsService.hasReported(user.id);
+  }
+
+  @UseGuards(AuthGuard)
   @Get(":id")
   async findOne(@Param("id") id: string) {
     return this.reportsService.findOne(+id);
