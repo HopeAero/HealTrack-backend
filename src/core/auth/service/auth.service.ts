@@ -15,13 +15,23 @@ import { CreatePatientDto } from "@src/core/patients/dto/create-patient.dto";
 import { EmployeesService } from "@core/employees/service/employees.service";
 import { CreateEmployeeDto } from "@src/core/employees/dto/create-employee.dto";
 import { UserActiveInterface } from "@src/common/interface/user-active-interface";
-import { BadRequestException, Injectable, UnauthorizedException, ForbiddenException } from "@nestjs/common";
+import {
+  BadRequestException,
+  Injectable,
+  UnauthorizedException,
+  ForbiddenException,
+  NotFoundException,
+} from "@nestjs/common";
+import { UpdatePasswordDto } from "../dto/update-password.dto";
 
 @Injectable()
 export class AuthService {
   constructor(
     @InjectRepository(Chat) private chatRepo: Repository<Chat>,
+
     private readonly patientService: PatientsService,
+
+    @InjectRepository(User) private userRepo: Repository<User>,
 
     private readonly employeeService: EmployeesService,
 
@@ -30,6 +40,7 @@ export class AuthService {
     private readonly jwtService: JwtService,
   ) {}
 
+  //Funcion de Login
   async login({ email, password }: LoginDto) {
     const user = await this.userService.getByEmail(email);
 
@@ -61,6 +72,8 @@ export class AuthService {
       patient: user.patient?.id,
     };
   }
+
+  //Funcion de Registro de paciente
   async registerPatient(createPatientDto: CreatePatientDto, user: UserActiveInterface) {
     const userExist = await this.userService.getByEmail(createPatientDto.user.email);
 
@@ -116,6 +129,7 @@ export class AuthService {
     };
   }
 
+  //Funcion de Registro de empleado
   async registerEmployee(createEmployeeDto: CreateEmployeeDto) {
     const userExist = await this.userService.getByEmail(createEmployeeDto.user.email);
 
@@ -139,6 +153,7 @@ export class AuthService {
     };
   }
 
+  //Funcion de obtencion de token al usuario
   public async getUserFromAuthenticationToken(token: string) {
     const payload = this.jwtService.verify(token, {
       secret: envData.SECRET,
@@ -147,5 +162,40 @@ export class AuthService {
     if (payload.id) {
       return this.userService.findOne(payload.id);
     }
+  }
+
+  //Funcion de cambio de contraseña
+  async changePassword(userEmail: string, updatePasswordDto: UpdatePasswordDto) {
+    const { currentPassword, newPassword } = updatePasswordDto;
+
+    const usuario = await this.userRepo.findOne({
+      where: { email: userEmail },
+    });
+
+    // Usar el repositorio de User para obtener el usuario con la contraseña
+    const user = await this.userRepo.findOne({
+      where: { email: userEmail },
+      select: ["password"], // Asegurarse de seleccionar la contraseña
+    });
+
+    if (!user) {
+      throw new NotFoundException("Usuario no encontrado");
+    }
+
+    const isCurrentPasswordValid = await bcryptjs.compare(currentPassword, user.password);
+
+    if (!isCurrentPasswordValid) {
+      throw new UnauthorizedException("Contraseña actual incorrecta");
+    }
+
+    const hashedNewPassword = await bcryptjs.hash(newPassword, 10);
+
+    user.password = hashedNewPassword;
+
+    const updatedUser = { ...usuario, password: hashedNewPassword };
+
+    await this.userRepo.save(updatedUser);
+
+    return { message: "Contraseña actualizada correctamente" };
   }
 }

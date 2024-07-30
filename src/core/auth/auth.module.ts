@@ -7,10 +7,11 @@ import { EmployeesModule } from "../employees/employees.module";
 import { UsersModule } from "../users/users.module";
 import { TypeOrmModule } from "@nestjs/typeorm";
 import { Chat } from "../chats/entities/chat.entity";
+import { User } from "../users/entities/user.entity";
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Chat]),
+    TypeOrmModule.forFeature([Chat, User]),
     PatientsModule,
     EmployeesModule,
     UsersModule,
