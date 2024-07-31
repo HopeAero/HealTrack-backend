@@ -1,14 +1,15 @@
-import { ApiProperty } from '@nestjs/swagger';
-import { IsString } from 'class-validator';
-import { Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { ApiProperty } from "@nestjs/swagger";
+import { IsString } from "class-validator";
+import { Column, Entity, PrimaryGeneratedColumn } from "typeorm";
 
 @Entity()
 export class Hospital {
   @ApiProperty()
   @PrimaryGeneratedColumn("uuid")
-  id: number;
+  id: string;
 
   @ApiProperty()
+  @Column()
   @IsString()
   name: string;
 }

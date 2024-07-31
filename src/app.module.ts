@@ -18,6 +18,7 @@ import { NotificationsModule } from "./core/notifications/notifications.module";
 import { ScheduleModule } from "@nestjs/schedule";
 import { MailerService } from "@nestjs-modules/mailer";
 import { MailerConfigModule } from "./core/mailerModule/mailer.module";
+import { HospitalsModule } from "./core/employees/hospital.module";
 
 @Module({
   imports: [
@@ -38,6 +39,7 @@ import { MailerConfigModule } from "./core/mailerModule/mailer.module";
     PatientsModule,
     AuthModule,
     EmployeesModule,
+    HospitalsModule,
     MessaggesModule,
     ChatsModule,
     SocketModule,
