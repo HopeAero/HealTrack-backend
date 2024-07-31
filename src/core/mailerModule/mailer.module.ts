@@ -12,14 +12,14 @@ import * as path from "path";
         transport: {
           host: configService.get("MAIL_HOST"),
           port: configService.get("MAIL_PORT"),
-          secure: false,
+          secure: true,
           auth: {
             user: configService.get("MAIL_USER"),
             pass: configService.get("MAIL_PASS"),
           },
         },
         defaults: {
-          from: `"No Reply" <${configService.get("MAIL_FROM")}>`,
+          from: `"HealTrack" <${configService.get("MAIL_FROM")}>`,
         },
         template: {
           dir: path.join(__dirname, "templates"),
