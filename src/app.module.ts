@@ -16,6 +16,8 @@ import { ServeStaticModule } from "@nestjs/serve-static/dist/serve-static.module
 import { join } from "path";
 import { NotificationsModule } from "./core/notifications/notifications.module";
 import { ScheduleModule } from "@nestjs/schedule";
+import { MailerService } from "@nestjs-modules/mailer";
+import { MailerConfigModule } from "./core/mailerModule/mailer.module";
 
 @Module({
   imports: [
@@ -31,6 +33,7 @@ import { ScheduleModule } from "@nestjs/schedule";
     ServeStaticModule.forRoot({
       rootPath: join(__dirname, "..", "upload"),
     }),
+    MailerConfigModule,
     UsersModule,
     PatientsModule,
     AuthModule,

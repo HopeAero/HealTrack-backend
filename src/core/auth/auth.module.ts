@@ -8,6 +8,7 @@ import { UsersModule } from "../users/users.module";
 import { TypeOrmModule } from "@nestjs/typeorm";
 import { Chat } from "../chats/entities/chat.entity";
 import { User } from "../users/entities/user.entity";
+import { MailerModule } from "@nestjs-modules/mailer";
 
 @Module({
   imports: [
@@ -15,6 +16,7 @@ import { User } from "../users/entities/user.entity";
     PatientsModule,
     EmployeesModule,
     UsersModule,
+    MailerModule, // importar el MailerModule
     JwtModule.register({
       global: true,
       secret: process.env.JWT_SECRET,

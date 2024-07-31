@@ -23,6 +23,11 @@ import {
   NotFoundException,
 } from "@nestjs/common";
 import { UpdatePasswordDto } from "../dto/update-password.dto";
+import { MailerService } from "@nestjs-modules/mailer";
+
+export type SendEmailDto = {
+  sender?: string;
+};
 
 @Injectable()
 export class AuthService {
@@ -38,6 +43,8 @@ export class AuthService {
     private readonly userService: UsersService,
 
     private readonly jwtService: JwtService,
+
+    private mailerService: MailerService,
   ) {}
 
   //Funcion de Login
@@ -197,5 +204,58 @@ export class AuthService {
     await this.userRepo.save(updatedUser);
 
     return { message: "Contraseña actualizada correctamente" };
+  }
+
+  //Enviar correo para recuperar contraseña al email
+  async sendResetPasswordEmail(userEmail: string) {
+    const user = await this.userRepo.findOne({
+      where: { email: userEmail },
+      select: ["email"], // Asegurarse de seleccionar el email
+    });
+
+    if (!user) {
+      throw new BadRequestException("Usuario no encontrado");
+    }
+
+    const token = this.jwtService.sign({ email: user.email }, { expiresIn: "1h" });
+
+    const resetUrl = `${process.env.FRONTEND_URL}/reset-password/${token}`;
+
+    console.log(resetUrl);
+
+    await this.mailerService.sendMail({
+      to: userEmail,
+      subject: "Restablecer tu contraseña",
+      html: `<p>Hola,</p>
+           <p>Has solicitado restablecer tu contraseña. Haz clic en el siguiente enlace para restablecer tu contraseña:</p>
+           <a href="${resetUrl}">Restablecer Contraseña</a>
+           <p>Si no solicitaste este cambio, por favor ignora este correo.</p>`,
+    });
+  }
+
+  //Restablecer contraseña al email
+  async resetPassword(token: string, newPassword: string) {
+    let payload: any;
+    try {
+      payload = this.jwtService.verify(token);
+    } catch (error) {
+      throw new BadRequestException("Token inválido o expirado");
+    }
+
+    const usuario = await this.userRepo.findOne({
+      where: { email: payload.email },
+    });
+
+    if (!usuario) {
+      throw new NotFoundException("Usuario no encontrado");
+    }
+
+    const hashedNewPassword = await bcryptjs.hash(newPassword, 10);
+
+    const updatedUser = { ...usuario, password: hashedNewPassword };
+
+    await this.userRepo.save(updatedUser);
+
+    return { message: "Contraseña restablecida correctamente" };
   }
 }
