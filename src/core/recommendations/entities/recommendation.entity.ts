@@ -1,13 +1,13 @@
 import { Entity, Column, PrimaryGeneratedColumn } from "typeorm";
 
 @Entity()
-export class FAQ {
+export class Recommendation {
   @PrimaryGeneratedColumn()
   id: number;
 
   @Column()
-  question: string;
+  title: string;
 
   @Column()
-  answer: string;
+  content: string;
 }
