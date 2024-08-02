@@ -23,7 +23,7 @@ export class AuthController {
     return this.authService.login(loginDto);
   }
 
-  //@Auth(AllRole.ASSISTANT)
+  @Auth(AllRole.ASSISTANT)
   @Post("register/patient")
   async registerPatient(@Body() createPatientDto: CreatePatientDto, @ActiveUser() user: UserActiveInterface) {
     return this.authService.registerPatient(createPatientDto, user);

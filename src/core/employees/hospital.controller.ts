@@ -34,6 +34,18 @@ export class HospitalsController {
     }
   }
 
+  @Get("names")
+  async findAllNames(@Response() response: express.Response) {
+    try {
+      const hospitalNames = await this.hospitalsService.findAllNames();
+      return response.status(200).json(hospitalNames);
+    } catch (error) {
+      return response.status(error.status).json({
+        message: error.message,
+      });
+    }
+  }
+
   @Get(":id")
   async findOne(@Param("id") id: string, @Response() response: express.Response) {
     try {

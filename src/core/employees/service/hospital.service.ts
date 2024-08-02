@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from "@nestjs/common";
+import { ConflictException, Injectable, NotFoundException } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 import { CreateHospitalDto } from "../dto/hospital.dto";
@@ -13,6 +13,10 @@ export class HospitalsService {
   ) {}
 
   async create(createHospitalDto: CreateHospitalDto): Promise<Hospital> {
+    const existingHospital = await this.hospitalsRepository.findOne({ where: { name: createHospitalDto.name } });
+    if (existingHospital) {
+      throw new ConflictException("Hospital ya existente");
+    }
     const hospital = this.hospitalsRepository.create(createHospitalDto);
     return this.hospitalsRepository.save(hospital);
   }
@@ -30,11 +34,18 @@ export class HospitalsService {
   }
 
   async update(id: string, updateHospitalDto: UpdateHospitalDto): Promise<Hospital> {
-    await this.hospitalsRepository.update(id, updateHospitalDto);
     const updatedHospital = await this.hospitalsRepository.findOne({ where: { id } });
     if (!updatedHospital) {
       throw new NotFoundException(`Hospital with ID ${id} not found`);
     }
+
+    const existingHospital = await this.hospitalsRepository.findOne({ where: { name: updateHospitalDto.name } });
+    if (existingHospital && existingHospital.id !== id) {
+      throw new ConflictException("Hospital ya existente");
+    }
+
+    await this.hospitalsRepository.update(id, updateHospitalDto);
+
     return updatedHospital;
   }
 
@@ -43,5 +54,10 @@ export class HospitalsService {
     if (result.affected === 0) {
       throw new NotFoundException(`Hospital with ID ${id} not found`);
     }
+  }
+
+  //Haya todos los nombres de los hospitales
+  async findAllNames(): Promise<{ name: string }[]> {
+    return this.hospitalsRepository.find({ select: ["name"] });
   }
 }

@@ -11,6 +11,7 @@ import { UsersService } from "@src/core/users/service/users.service";
 import { AllRole } from "@src/constants";
 import { StatusPatient } from "@src/constants/status/statusPatient";
 import { User } from "@src/core/users/entities/user.entity";
+import { Hospital } from "@src/core/employees/entities/hospital.entity";
 
 @Injectable()
 export class PatientsService {
@@ -19,6 +20,10 @@ export class PatientsService {
     private readonly patientRepository: Repository<Patient>,
     @InjectRepository(Employee)
     private readonly employeeRepository: Repository<Employee>,
+
+    @InjectRepository(Hospital) // Inyectar el repositorio de Hospital
+    private readonly hospitalRepository: Repository<Hospital>,
+
     private dataSource: DataSource,
     private readonly userService: UsersService,
     private readonly reportService: ReportsService,
@@ -29,6 +34,28 @@ export class PatientsService {
     await queryRunner.connect();
     await queryRunner.startTransaction();
     try {
+      const exists = await this.numberPhoneExists(createPatientDto.personalPhone);
+      const existsHome = await this.numberPhoneExists(createPatientDto.homePhone);
+
+      if (exists) {
+        throw new BadRequestException("Ya existe un paciente con este numero de telefono personal");
+      }
+
+      if (existsHome) {
+        throw new BadRequestException("Ya existe un paciente con este numero de telefono de casa");
+      }
+
+      // Verificar si el hospital existe
+      const hospital = await this.hospitalRepository.findOne({
+        where: {
+          name: createPatientDto.hospital.name,
+        },
+      });
+
+      if (!hospital) {
+        throw new NotFoundException("No se encontro el hospital con el Name proporcionado");
+      }
+
       const employee = await this.employeeRepository.findOne({
         where: {
           id: createPatientDto.medicId,
@@ -137,19 +164,21 @@ export class PatientsService {
       const { user, ...data } = updatePatientDto;
       const { medicId, ...dataObj } = data;
 
-      const exists = await this.numberPhoneExists(updatePatientDto.personalPhone);
-      const existsHome = await this.numberPhoneExists(updatePatientDto.homePhone);
-
-      if (exists) {
-        throw new BadRequestException("Ya existe un paciente con este numero de telefono personal");
-      }
-
-      if (existsHome) {
-        throw new BadRequestException("Ya existe un paciente con este numero de telefono de casa");
-      }
-
       if (!patient) {
         throw new NotFoundException(`Paciente con el ID ${id} no fue encontrado`);
+      }
+
+      if (updatePatientDto.hospital.name) {
+        // Verificar si el hospital existe
+        const hospital = await this.hospitalRepository.findOne({
+          where: {
+            name: updatePatientDto.hospital.name,
+          },
+        });
+
+        if (!hospital) {
+          throw new NotFoundException("No se encontro el hospital con el Nombre proporcionado");
+        }
       }
 
       if (updatePatientDto.medicId) {

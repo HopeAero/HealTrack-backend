@@ -8,12 +8,17 @@ import { UsersService } from "@src/core/users/service/users.service";
 import { AllRole } from "@src/constants";
 import * as bcryptjs from "bcryptjs";
 import { User } from "@src/core/users/entities/user.entity";
+import { Hospital } from "../entities/hospital.entity";
 
 @Injectable()
 export class EmployeesService {
   constructor(
     @InjectRepository(Employee)
     private readonly employeeRepository: Repository<Employee>,
+
+    @InjectRepository(Hospital) // Inyectar el repositorio de Hospital
+    private readonly hospitalRepository: Repository<Hospital>,
+
     private dataSource: DataSource,
     private readonly userService: UsersService,
   ) {}
@@ -28,6 +33,12 @@ export class EmployeesService {
         createEmployeeDto.user.role !== AllRole.ASSISTANT
       ) {
         throw new NotFoundException("El rol del empleado no es valido");
+      }
+
+      // Validar que el hospital existe
+      const hospital = await this.hospitalRepository.findOne({ where: { name: createEmployeeDto.hospital.name } });
+      if (!hospital) {
+        throw new BadRequestException("El hospital proporcionado no existe");
       }
 
       const employee = new Employee();
@@ -85,15 +96,19 @@ export class EmployeesService {
             throw new BadRequestException("El rol del empleado no es valido");
           }
         }
-      }
 
-      if (updateEmployeeDto.user) {
         const isback = await this.userService.update(employee.user.id, updateEmployeeDto.user);
       }
 
-      let { hospital, ...rest } = updateEmployeeDto;
+      if (updateEmployeeDto.hospital) {
+        // Validar que el hospital existe
+        const hospital = await this.hospitalRepository.findOne({ where: { name: updateEmployeeDto.hospital.name } });
+        if (!hospital) {
+          throw new BadRequestException("El hospital proporcionado no existe");
+        }
+      }
 
-      const updatedEmployee = await this.employeeRepository.update(id, { hospital: hospital });
+      const updatedEmployee = await this.employeeRepository.update(id, { ...updateEmployeeDto });
 
       return updatedEmployee;
     } catch (error) {
