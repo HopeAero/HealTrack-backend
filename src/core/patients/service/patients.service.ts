@@ -34,15 +34,12 @@ export class PatientsService {
     await queryRunner.connect();
     await queryRunner.startTransaction();
     try {
+      console.log(createPatientDto);
+
       const exists = await this.numberPhoneExists(createPatientDto.personalPhone);
-      const existsHome = await this.numberPhoneExists(createPatientDto.homePhone);
 
       if (exists) {
         throw new BadRequestException("Ya existe un paciente con este numero de telefono personal");
-      }
-
-      if (existsHome) {
-        throw new BadRequestException("Ya existe un paciente con este numero de telefono de casa");
       }
 
       // Verificar si el hospital existe
@@ -236,6 +233,7 @@ export class PatientsService {
     await this.userService.remove(patient.user.id);
   }
 
+  //Otras funciones
   private async getByNumberPhone(personalPhone: string) {
     const patient = await this.patientRepository.findOne({
       where: {
