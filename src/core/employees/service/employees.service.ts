@@ -22,6 +22,7 @@ export class EmployeesService {
     private dataSource: DataSource,
     private readonly userService: UsersService,
   ) {}
+
   async create(createEmployeeDto: CreateEmployeeDto) {
     const queryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();
@@ -37,6 +38,9 @@ export class EmployeesService {
 
       // Validar que el hospital existe
       const hospital = await this.hospitalRepository.findOne({ where: { name: createEmployeeDto.hospital.name } });
+
+      console.log(hospital);
+
       if (!hospital) {
         throw new BadRequestException("El hospital proporcionado no existe");
       }
@@ -97,7 +101,7 @@ export class EmployeesService {
           }
         }
 
-        const isback = await this.userService.update(employee.user.id, updateEmployeeDto.user);
+        await this.userService.update(employee.user.id, updateEmployeeDto.user);
       }
 
       if (updateEmployeeDto.hospital) {
@@ -108,7 +112,7 @@ export class EmployeesService {
         }
       }
 
-      const updatedEmployee = await this.employeeRepository.update(id, { ...updateEmployeeDto });
+      const updatedEmployee = await this.employeeRepository.update(id, { hospital: updateEmployeeDto.hospital });
 
       return updatedEmployee;
     } catch (error) {
