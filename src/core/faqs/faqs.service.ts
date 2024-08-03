@@ -62,7 +62,7 @@ export class FAQsService {
       throw new NotFoundException(`FAQ with ID ${id} not found`);
     }
 
-    await this.faqsRepository.softDelete(id);
+    await this.faqsRepository.delete(id);
     return true;
   }
 }
