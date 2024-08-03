@@ -62,7 +62,7 @@ export class RecommendationsService {
       throw new NotFoundException(`Recommendation with ID ${id} not found`);
     }
 
-    await this.recommendationsRepository.softDelete(id);
+    await this.recommendationsRepository.delete(id);
     return true;
   }
 }

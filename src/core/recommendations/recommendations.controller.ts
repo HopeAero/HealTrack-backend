@@ -63,9 +63,9 @@ export class RecommendationsController {
   }
 
   @Delete(":id")
-  async remove(@Param("id") id: string, @Response() response: express.Response) {
+  async remove(@Param("id") id: number, @Response() response: express.Response) {
     try {
-      await this.recommendationsService.remove(+id);
+      await this.recommendationsService.remove(id);
       return response.status(200).json({
         message: "Recommendation deleted successfully",
       });
