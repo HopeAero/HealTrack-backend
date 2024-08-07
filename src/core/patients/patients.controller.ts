@@ -16,6 +16,11 @@ export class PatientsController {
     return await this.patientsService.findAll(status);
   }
 
+  @Get("todos")
+  async findAll_No_Status() {
+    return await this.patientsService.findAll();
+  }
+
   @Get(":id")
   async findOne(@Param("id") id: string) {
     return await this.patientsService.findOne(+id);
@@ -90,5 +95,11 @@ export class PatientsController {
         message: error.message,
       });
     }
+  }
+
+  @Get(":id/medic-name")
+  async getMedicName(@Param("id") id: number) {
+    const medicName = await this.patientsService.getMedicNameByPatient(id);
+    return { medicName };
   }
 }

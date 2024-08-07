@@ -18,11 +18,15 @@ export class PatientsService {
   constructor(
     @InjectRepository(Patient)
     private readonly patientRepository: Repository<Patient>,
+
     @InjectRepository(Employee)
     private readonly employeeRepository: Repository<Employee>,
 
     @InjectRepository(Hospital) // Inyectar el repositorio de Hospital
     private readonly hospitalRepository: Repository<Hospital>,
+
+    @InjectRepository(User)
+    private readonly userRepository: Repository<User>,
 
     private dataSource: DataSource,
     private readonly userService: UsersService,
@@ -125,6 +129,15 @@ export class PatientsService {
     });
   }
 
+  async findAll_No_Status() {
+    return await this.patientRepository.find({
+      relations: ["medic", "asistant", "user"],
+      order: {
+        id: "ASC",
+      },
+    });
+  }
+
   async findOne(id: number) {
     const found = await this.patientRepository.findOne({ where: { id: Equal(id) }, relations: ["medic", "user"] });
 
@@ -192,10 +205,10 @@ export class PatientsService {
         return await this.patientRepository.update(id, { ...dataObj, medic: employee });
       }
 
-      const updatedPatient = await this.patientRepository.update(id, dataObj);
+      await this.patientRepository.update(id, dataObj);
 
       if (updatePatientDto.user) {
-        const isback = await this.userService.update(patient.user.id, user);
+        await this.userService.update(patient.user.id, user);
       }
 
       return true;
@@ -263,5 +276,33 @@ export class PatientsService {
     }
 
     return false;
+  }
+
+  // Añadimos la función para obtener el nombre del médico
+  async getMedicNameByPatient(patientId: number): Promise<string> {
+    // Encontrar al paciente por ID
+    const patient = await this.patientRepository.findOne({
+      where: { id: patientId },
+      relations: ["asistant", "asistant.user"], // Relacionar con asistente y usuario del asistente
+    });
+
+    if (!patient) {
+      throw new NotFoundException(`Paciente con el ID ${patientId} no fue encontrado`);
+    }
+
+    // Verificar si el paciente tiene un asistente asignado
+    const asistant = patient.asistant;
+    if (!asistant) {
+      return "No asignado";
+    }
+
+    // Verificar el rol del asistente
+    const user = asistant.user;
+    if (user.role !== AllRole.ASSISTANT) {
+      return "Asistente no válido";
+    }
+
+    // Retornar el nombre completo del asistente
+    return user ? `${user.name} ${user.lastname}` : "No asignado";
   }
 }

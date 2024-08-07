@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
+import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
 import { CreateReportDto } from "../dto/create-report.dto";
 import { ReportFilterDto } from "../dto/report-filter.dto";
 import { InjectRepository } from "@nestjs/typeorm";
@@ -9,6 +9,7 @@ import { UserActiveInterface } from "@src/common/interface/user-active-interface
 import { AllRole } from "@src/constants";
 import { envData } from "@src/config/typeorm";
 import { PaginatedResult } from "@src/constants/paginate/type";
+import { UpdateReportDto } from "../dto/update-report.dto";
 
 @Injectable()
 export class ReportsService {
@@ -23,6 +24,13 @@ export class ReportsService {
     file: Express.Multer.File,
     user: UserActiveInterface,
   ): Promise<ReportMedic> {
+    console.log(createReportDto);
+    console.log();
+    console.log();
+    console.log(file);
+    console.log();
+    console.log();
+    console.log(user);
     const activeUser = await this.userService.findOne(user.id);
 
     if (!activeUser) {
@@ -279,5 +287,32 @@ export class ReportsService {
     }
 
     return !!report;
+  }
+
+  async update(
+    id: number,
+    updateReportDto: UpdateReportDto,
+    file: Express.Multer.File,
+    user: UserActiveInterface,
+  ): Promise<ReportMedic> {
+    // Buscamos si el reporte corresponde la paciente que va a cambiar su foto
+    const report = await this.reportRepository.findOne({
+      where: { id, user: { id: user.id } },
+    });
+
+    if (!report) {
+      throw new ForbiddenException("Solo el paciente puede reenviar su foto");
+    }
+
+    // Cambiamos foto
+    if (file) {
+      const newPath = envData.DATABASE_URL + "/" + file.path.replace(/\\/g, "/");
+      updateReportDto.fileUrl = newPath;
+    }
+
+    // Actualizar el reporte con los datos del DTO
+    Object.assign(report, updateReportDto);
+
+    return this.reportRepository.save(report);
   }
 }

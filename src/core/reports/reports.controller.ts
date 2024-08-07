@@ -30,6 +30,7 @@ import { extname } from "path";
 import { ReportFilterDto } from "./dto/report-filter.dto";
 import { ReportMedic } from "./entities/report.entity";
 import { PaginatedResult } from "@src/constants/paginate/type";
+import { UpdateReportDto } from "./dto/update-report.dto";
 
 const storage = diskStorage({
   destination: "./upload",
@@ -123,7 +124,7 @@ export class ReportsController {
     return await this.reportsService.uploadFile(+id, file, user);
   }
 
-  @Auth(AllRole.ADMIN)
+  //@Auth(AllRole.ADMIN)
   @Delete(":id")
   async remove(@Param("id") id: string, @Res() res: Response) {
     try {
@@ -131,6 +132,33 @@ export class ReportsController {
 
       return res.status(200).json({
         message: "Se ha eliminado correctamente el reporte",
+      });
+    } catch (error) {
+      return res.status(error.status).json({ message: error.message, error: error });
+    }
+  }
+
+  @UseGuards(AuthGuard)
+  @UseInterceptors(FileInterceptor("file"))
+  @Patch(":id")
+  async updateReport(
+    @Param("id") id: string,
+    @Body() updateReportDto: UpdateReportDto,
+    @UploadedFile(
+      new ParseFilePipe({
+        validators: [new FileTypeValidator({ fileType: ".(png|jpeg|jpg)" })],
+        fileIsRequired: false,
+      }),
+    )
+    file: Express.Multer.File,
+    @ActiveUser() user: UserActiveInterface,
+    @Res() res: Response,
+  ) {
+    try {
+      const report = await this.reportsService.update(+id, updateReportDto, file, user);
+
+      return res.status(200).json({
+        report,
       });
     } catch (error) {
       return res.status(error.status).json({ message: error.message, error: error });
