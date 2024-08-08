@@ -7,6 +7,8 @@ import { UsersModule } from "../users/users.module";
 import { MulterModule } from "@nestjs/platform-express";
 import { diskStorage } from "multer";
 import { extname } from "path";
+import { User } from "../users/entities/user.entity";
+import { Patient } from "../patients/entities/patient.entity";
 
 @Module({
   imports: [
@@ -20,7 +22,7 @@ import { extname } from "path";
       }),
     }),
     UsersModule,
-    TypeOrmModule.forFeature([ReportMedic]),
+    TypeOrmModule.forFeature([ReportMedic, User, Patient]),
   ],
   controllers: [ReportsController],
   providers: [ReportsService],

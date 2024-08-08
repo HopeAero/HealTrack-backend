@@ -1,4 +1,10 @@
-import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
+import {
+  BadRequestException,
+  ForbiddenException,
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+} from "@nestjs/common";
 import { CreateReportDto } from "../dto/create-report.dto";
 import { ReportFilterDto } from "../dto/report-filter.dto";
 import { InjectRepository } from "@nestjs/typeorm";
@@ -10,12 +16,17 @@ import { AllRole } from "@src/constants";
 import { envData } from "@src/config/typeorm";
 import { PaginatedResult } from "@src/constants/paginate/type";
 import { UpdateReportDto } from "../dto/update-report.dto";
+import * as ExcelJS from "exceljs";
+import * as dayjs from "dayjs";
+import { User } from "@src/core/users/entities/user.entity";
 
 @Injectable()
 export class ReportsService {
   constructor(
     @InjectRepository(ReportMedic)
     private readonly reportRepository: Repository<ReportMedic>,
+    @InjectRepository(User)
+    private readonly userRepository: Repository<User>,
     private readonly userService: UsersService,
   ) {}
 
@@ -24,13 +35,6 @@ export class ReportsService {
     file: Express.Multer.File,
     user: UserActiveInterface,
   ): Promise<ReportMedic> {
-    console.log(createReportDto);
-    console.log();
-    console.log();
-    console.log(file);
-    console.log();
-    console.log();
-    console.log(user);
     const activeUser = await this.userService.findOne(user.id);
 
     if (!activeUser) {
@@ -314,5 +318,69 @@ export class ReportsService {
     Object.assign(report, updateReportDto);
 
     return this.reportRepository.save(report);
+  }
+
+  // Funcion para encontrar SurgyeryProcedure
+  async getSurgeryProcedureByUserId(userId: number): Promise<string> {
+    const user = await this.userRepository.findOne({
+      where: { id: userId },
+      relations: ["patient"],
+    });
+
+    if (!user || !user.patient) {
+      return "No especificado";
+    }
+
+    return user.patient.surgeryProcedure || "No especificado";
+  }
+
+  // Función existente para exportar los reportes a Excel
+  async exportReportsToExcel() {
+    const reports = await this.reportRepository.find({
+      relations: ["user", "user.patient"],
+    });
+
+    if (reports.length === 0) {
+      throw new NotFoundException("No reports found");
+    }
+
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet("Reports");
+
+    // Añadir cabeceras
+    worksheet.columns = [
+      { header: "Fecha", key: "fecha", width: 15 },
+      { header: "Paciente", key: "paciente", width: 20 },
+      { header: "¿Tiene temperatura alta?", key: "temperatura", width: 30 },
+      { header: "¿Tiene enrojecimiento?", key: "enrojecimiento", width: 30 },
+      { header: "¿Tiene hinchazón?", key: "hinchazon", width: 30 },
+      { header: "¿Tiene secreciones?", key: "secreciones", width: 30 },
+      { header: "¿Tuvo gasto relacionado con la cirugía?", key: "tuvo_gasto", width: 50 },
+      { header: "Monto aproximado de los gastos (en $)", key: "monto", width: 40 },
+      { header: "Descripción", key: "descripcion", width: 50 },
+      { header: "Tipo de cirugía", key: "tipoCirugia", width: 30 },
+    ];
+
+    // Añadir los datos de los reportes
+    for (const report of reports) {
+      const surgeryProcedure = await this.getSurgeryProcedureByUserId(report.user.id);
+      worksheet.addRow({
+        fecha: dayjs(report.createdAt).format("DD/MM/YYYY"),
+        paciente: report.user.name + " " + report.user.lastname,
+        temperatura: report.hasHighTemperature ? "Si" : "No",
+        enrojecimiento: report.hasRedness ? "Si" : "No",
+        hinchazon: report.hasSwelling ? "Si" : "No",
+        secreciones: report.hasSecretions ? "Si" : "No",
+        tuvo_gasto: report.surgeryExpense,
+        monto: report.surgeryExpenseAmount,
+        descripcion: report.additionalInformation,
+        tipoCirugia: surgeryProcedure,
+      });
+    }
+
+    // Generar el archivo Excel en un buffer
+    const uint8Array = await workbook.xlsx.writeBuffer();
+    const buffer = Buffer.from(uint8Array);
+    return buffer;
   }
 }

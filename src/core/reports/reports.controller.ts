@@ -51,6 +51,25 @@ const storage = diskStorage({
 export class ReportsController {
   constructor(private readonly reportsService: ReportsService) {}
 
+  //Controller del arhivo reporte de excel
+  @Auth(AllRole.ADMIN)
+  @Get("export")
+  async exportReport(@Res() res: Response) {
+    try {
+      // Llamar al servicio para obtener el reporte y generar el archivo Excel
+      const excelBuffer = await this.reportsService.exportReportsToExcel();
+
+      // Configurar el encabezado de la respuesta para la descarga del archivo
+      res.setHeader("Content-Disposition", `attachment; filename=reporte.xlsx`);
+      res.setHeader("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+
+      // Enviar el archivo al cliente
+      res.send(excelBuffer);
+    } catch (error) {
+      return res.status(error.status || 500).json({ message: error.message });
+    }
+  }
+
   @UseGuards(AuthGuard)
   @UseInterceptors(FileInterceptor("file"))
   @Post()
@@ -124,7 +143,7 @@ export class ReportsController {
     return await this.reportsService.uploadFile(+id, file, user);
   }
 
-  //@Auth(AllRole.ADMIN)
+  @Auth(AllRole.ADMIN)
   @Delete(":id")
   async remove(@Param("id") id: string, @Res() res: Response) {
     try {

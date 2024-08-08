@@ -13,6 +13,6 @@ import { HospitalsModule } from "../employees/hospital.module";
   imports: [UsersModule, ReportsModule, HospitalsModule, TypeOrmModule.forFeature([Patient, Employee])],
   controllers: [PatientsController],
   providers: [PatientsService, EmployeesService],
-  exports: [PatientsService],
+  exports: [PatientsService, TypeOrmModule],
 })
 export class PatientsModule {}

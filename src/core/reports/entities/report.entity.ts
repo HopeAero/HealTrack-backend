@@ -41,6 +41,14 @@ export class ReportMedic {
   @Column("bool", { nullable: false })
   hasSecretions: boolean;
 
+  @ApiProperty({ example: "No", description: "Ha tenido algún gasto relacionado con la cirugía" })
+  @Column("text", { nullable: false, default: "No" })
+  surgeryExpense: string;
+
+  @ApiProperty({ example: 0.0, description: "Monto aproximado de los gastos relacionados con la cirugía" })
+  @Column("float", { nullable: false, default: 0.0 })
+  surgeryExpenseAmount: number;
+
   @ApiProperty()
   @Column({ default: "", nullable: true })
   additionalInformation: string;

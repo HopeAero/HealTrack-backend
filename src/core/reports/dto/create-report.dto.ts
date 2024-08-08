@@ -1,6 +1,6 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { Transform } from "class-transformer";
-import { IsBoolean, IsNotEmpty, IsOptional, IsString } from "class-validator";
+import { IsBoolean, IsNotEmpty, IsNumber, IsOptional, IsString } from "class-validator";
 
 export class CreateReportDto {
   @ApiProperty({ example: true, description: "Tiene temperatura mayor de 38,5 °C" })
@@ -26,6 +26,17 @@ export class CreateReportDto {
   @IsBoolean()
   @Transform(({ value }) => value === "true" || value === true)
   hasSecretions: boolean;
+
+  @ApiProperty({ example: "No", description: "¿Ha tenido algún gasto relacionado con la cirugía?" })
+  @IsNotEmpty()
+  @IsString()
+  surgeryExpense: string;
+
+  @ApiProperty({ example: 0.0, description: "Monto aproximado de los gastos relacionados con la cirugía" })
+  @IsNotEmpty()
+  @IsNumber()
+  @Transform(({ value }) => parseFloat(value))
+  surgeryExpenseAmount: number;
 
   @ApiProperty({ example: true })
   @IsOptional()
