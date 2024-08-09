@@ -6,9 +6,10 @@ import { Employee } from "./entities/employee.entity";
 import { HospitalsModule } from "./hospital.module"; // Ajusta la ruta según tu estructura de carpetas
 import { User } from "../users/entities/user.entity";
 import { UsersModule } from "../users/users.module";
+import { NotificationsModule } from "../notifications/notifications.module";
 
 @Module({
-  imports: [UsersModule, HospitalsModule, TypeOrmModule.forFeature([Employee])],
+  imports: [UsersModule, HospitalsModule, NotificationsModule, TypeOrmModule.forFeature([Employee])],
   controllers: [EmployeesController],
   providers: [EmployeesService],
   exports: [EmployeesService],

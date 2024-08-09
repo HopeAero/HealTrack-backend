@@ -4,6 +4,7 @@ import { Column, DeleteDateColumn, Entity, JoinColumn, OneToMany, OneToOne, Prim
 import { Hospital } from "./hospital.entity";
 import { Patient } from "@src/core/patients/entities/patient.entity";
 import { User } from "@src/core/users/entities/user.entity";
+import { Notification } from "@src/core/notifications/entities/notification.entity";
 
 @Entity()
 export class Employee {
@@ -28,4 +29,8 @@ export class Employee {
 
   @OneToMany(() => Patient, (patient) => patient.asistant)
   asistants: Patient[];
+
+  @ApiProperty({ type: () => Notification })
+  @OneToMany(() => Notification, (notification) => notification.employee)
+  notifications: Notification[];
 }
