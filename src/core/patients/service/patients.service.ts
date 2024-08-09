@@ -12,6 +12,7 @@ import { AllRole } from "@src/constants";
 import { StatusPatient } from "@src/constants/status/statusPatient";
 import { User } from "@src/core/users/entities/user.entity";
 import { Hospital } from "@src/core/employees/entities/hospital.entity";
+import { NotificationsService } from "@src/core/notifications/service/notifications.service";
 
 @Injectable()
 export class PatientsService {
@@ -29,8 +30,12 @@ export class PatientsService {
     private readonly userRepository: Repository<User>,
 
     private dataSource: DataSource,
+
     private readonly userService: UsersService,
+
     private readonly reportService: ReportsService,
+
+    private readonly notificationsService: NotificationsService,
   ) {}
 
   async create(createPatientDto: CreatePatientDto) {
@@ -304,5 +309,54 @@ export class PatientsService {
 
     // Retornar el nombre completo del asistente
     return user ? `${user.name} ${user.lastname}` : "No asignado";
+  }
+
+  // Funcion de boton de panico
+  async handlePanicButton(patientId: number): Promise<void> {
+    const patient = await this.patientRepository.findOne({
+      where: { id: patientId },
+      relations: ["user", "medic", "medic.user", "asistant", "asistant.user"],
+    });
+
+    if (!patient) {
+      throw new NotFoundException(`Paciente con el ID ${patientId} no fue encontrado`);
+    }
+
+    // Obtener información del paciente
+    const { user, address, personalPhone, homePhone, hospital } = patient;
+    const patientName = `${user.name} ${user.lastname}`;
+    const patientEmail = user.email;
+    const patientIdentification = user.identification;
+
+    // Crear el mensaje de la notificación
+    const message = `
+      Alerta de emergencia: El paciente ${patientName} (ID: ${patientId}) ha activado el botón de pánico.
+      Información del paciente:
+      - Nombre: ${patientName}
+      - Email: ${patientEmail}
+      - Identificación: ${patientIdentification}
+      - Dirección: ${address}
+      - Teléfono personal: ${personalPhone}
+      - Teléfono de casa: ${homePhone}
+      - Hospital: ${hospital.name}
+    `;
+
+    // Enviar notificación al enfermero
+    if (patient.asistant) {
+      await this.notificationsService.create({
+        title: "Alerta de Emergencia",
+        message,
+        employeeId: patient.asistant.id,
+      });
+    }
+
+    // Enviar notificación al especialista
+    if (patient.medic) {
+      await this.notificationsService.create({
+        title: "Alerta de Emergencia",
+        message,
+        employeeId: patient.medic.id,
+      });
+    }
   }
 }

@@ -1,4 +1,16 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Response, Query } from "@nestjs/common";
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  Response,
+  Query,
+  HttpCode,
+  HttpStatus,
+} from "@nestjs/common";
 import { StatusPatient } from "@src/constants/status/statusPatient";
 import { UpdatePatientStateDto } from "./dto/update-patient-state.dto";
 import { PatientsService } from "./service/patients.service";
@@ -101,5 +113,11 @@ export class PatientsController {
   async getMedicName(@Param("id") id: number) {
     const medicName = await this.patientsService.getMedicNameByPatient(id);
     return { medicName };
+  }
+
+  @Post(":id/panic-button")
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async handlePanicButton(@Param("id") id: string) {
+    await this.patientsService.handlePanicButton(+id);
   }
 }

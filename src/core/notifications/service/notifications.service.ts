@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from "@nestjs/common";
+import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
 import { OneSignalService, IOneSignalModuleOptions } from "onesignal-api-client-nest";
 import { IViewNotificationsInput, NotificationBySegmentBuilder } from "onesignal-api-client-core";
 import { InjectRepository } from "@nestjs/typeorm";
@@ -23,12 +23,22 @@ export class NotificationsService {
   async create(createNotificationDto: CreateNotificationDto): Promise<Notification> {
     const { title, message, employeeId } = createNotificationDto;
 
+    // Verificar que el employeeId no sea nulo
+    if (!employeeId) {
+      throw new BadRequestException("Employee ID is required to create a notification");
+    }
+
     const employee = await this.employeeRepository.findOne({ where: { id: employeeId } });
+
     if (!employee) {
       throw new NotFoundException(`Employee with ID ${employeeId} not found`);
     }
 
-    const notification = this.notificationRepository.create(createNotificationDto);
+    const notification = this.notificationRepository.create({
+      title,
+      message,
+      employee,
+    });
 
     return this.notificationRepository.save(notification);
   }

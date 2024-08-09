@@ -21,7 +21,7 @@ export class Notification {
   isRead: boolean;
 
   @ApiProperty()
-  @CreateDateColumn()
+  @CreateDateColumn({ type: "timestamp", default: () => "CURRENT_TIMESTAMP" })
   createdAt: Date;
 
   @ApiProperty({ type: () => Employee })
