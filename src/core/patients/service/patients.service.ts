@@ -13,6 +13,7 @@ import { StatusPatient } from "@src/constants/status/statusPatient";
 import { User } from "@src/core/users/entities/user.entity";
 import { Hospital } from "@src/core/employees/entities/hospital.entity";
 import { NotificationsService } from "@src/core/notifications/service/notifications.service";
+import { MailerService } from "@nestjs-modules/mailer";
 
 @Injectable()
 export class PatientsService {
@@ -23,7 +24,7 @@ export class PatientsService {
     @InjectRepository(Employee)
     private readonly employeeRepository: Repository<Employee>,
 
-    @InjectRepository(Hospital) // Inyectar el repositorio de Hospital
+    @InjectRepository(Hospital)
     private readonly hospitalRepository: Repository<Hospital>,
 
     @InjectRepository(User)
@@ -36,6 +37,8 @@ export class PatientsService {
     private readonly reportService: ReportsService,
 
     private readonly notificationsService: NotificationsService,
+
+    private mailerService: MailerService,
   ) {}
 
   async create(createPatientDto: CreatePatientDto) {
@@ -341,21 +344,49 @@ export class PatientsService {
       - Hospital: ${hospital.name}
     `;
 
+    const assistantEmail = patient.asistant.user.email;
+    const medicEmail = patient.medic.user.email;
+    const titulo = "Alerta de Emergencia. Paciente: " + patientName;
+
+    const mail_html = `<p>Alerta de emergencia: El paciente ${patientName} (ID: ${patientId}) ha activado el botón de pánico.</p>
+                    <p>Información del paciente:</p>
+                    <p></p>
+                    <p>- Nombre: ${patientName}</p>
+                    <p>- Email: ${patientEmail}</p>
+                    <p>- Identificación: ${patientIdentification}</p>
+                    <p>- Dirección: ${address}</p>
+                    <p>- Teléfono personal: ${personalPhone}</p>
+                    <p>- Teléfono de casa: ${homePhone}</p>
+                    <p>- Hospital: ${hospital.name}</p>
+                    `;
+
     // Enviar notificación al enfermero
     if (patient.asistant) {
       await this.notificationsService.create({
-        title: "Alerta de Emergencia",
+        title: titulo,
         message,
         employeeId: patient.asistant.id,
+      });
+
+      await this.mailerService.sendMail({
+        to: assistantEmail,
+        subject: titulo,
+        html: mail_html,
       });
     }
 
     // Enviar notificación al especialista
     if (patient.medic) {
       await this.notificationsService.create({
-        title: "Alerta de Emergencia",
+        title: titulo,
         message,
         employeeId: patient.medic.id,
+      });
+
+      await this.mailerService.sendMail({
+        to: medicEmail,
+        subject: titulo,
+        html: mail_html,
       });
     }
   }

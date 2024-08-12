@@ -9,6 +9,7 @@ import { UsersModule } from "../users/users.module";
 import { ReportsModule } from "../reports/reports.module";
 import { HospitalsModule } from "../employees/hospital.module";
 import { NotificationsModule } from "../notifications/notifications.module";
+import { MailerModule } from "@nestjs-modules/mailer";
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { NotificationsModule } from "../notifications/notifications.module";
     ReportsModule,
     HospitalsModule,
     NotificationsModule,
+    MailerModule,
     TypeOrmModule.forFeature([Patient, Employee]),
   ],
   controllers: [PatientsController],

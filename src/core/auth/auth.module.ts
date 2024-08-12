@@ -16,7 +16,7 @@ import { MailerModule } from "@nestjs-modules/mailer";
     PatientsModule,
     EmployeesModule,
     UsersModule,
-    MailerModule, // importar el MailerModule
+    MailerModule,
     JwtModule.register({
       global: true,
       secret: process.env.JWT_SECRET,
