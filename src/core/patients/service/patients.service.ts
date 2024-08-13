@@ -314,15 +314,17 @@ export class PatientsService {
     return user ? `${user.name} ${user.lastname}` : "No asignado";
   }
 
-  // Funcion de boton de panico
-  async handlePanicButton(patientId: number): Promise<void> {
+  // Función de botón de pánico
+  async handlePanicButton(userId: number): Promise<void> {
+  
+    // Buscar al paciente utilizando el ID del usuario
     const patient = await this.patientRepository.findOne({
-      where: { id: patientId },
+      where: { user: { id: userId } },
       relations: ["user", "medic", "medic.user", "asistant", "asistant.user"],
     });
 
     if (!patient) {
-      throw new NotFoundException(`Paciente con el ID ${patientId} no fue encontrado`);
+      throw new NotFoundException(`Paciente con el ID de usuario ${userId} no fue encontrado`);
     }
 
     // Obtener información del paciente
@@ -333,7 +335,7 @@ export class PatientsService {
 
     // Crear el mensaje de la notificación
     const message = `
-      Alerta de emergencia: El paciente ${patientName} (ID: ${patientId}) ha activado el botón de pánico.
+      Alerta de emergencia: El paciente ${patientName} (ID: ${patient.id}) ha activado el botón de pánico.
       Información del paciente:
       - Nombre: ${patientName}
       - Email: ${patientEmail}
@@ -348,7 +350,7 @@ export class PatientsService {
     const medicEmail = patient.medic.user.email;
     const titulo = "Alerta de Emergencia. Paciente: " + patientName;
 
-    const mail_html = `<p>Alerta de emergencia: El paciente ${patientName} (ID: ${patientId}) ha activado el botón de pánico.</p>
+    const mail_html = `<p>Alerta de emergencia: El paciente ${patientName} (ID: ${patient.id}) ha activado el botón de pánico.</p>
                     <p>Información del paciente:</p>
                     <p></p>
                     <p>- Nombre: ${patientName}</p>

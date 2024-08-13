@@ -30,6 +30,14 @@ export class NotificationsController {
     return this.notificationsService.countUnreadNotifications(employeeId);
   }
 
+  @Get("employee/:employeeId")
+  @ApiOperation({ summary: "Obtener todas las notificaciones de un empleado por ID" })
+  @ApiParam({ name: "employeeId", description: "ID del empleado para obtener sus notificaciones", type: Number })
+  @ApiResponse({ status: 200, description: "Lista de notificaciones del empleado", type: [Notification] })
+  async findNotificationsByEmployeeId(@Param("employeeId") employeeId: number): Promise<Notification[]> {
+    return this.notificationsService.findNotificationsByEmployeeId(employeeId);
+  }
+
   @Get(":id")
   @ApiOperation({ summary: "Obtener una notificación por ID" })
   @ApiParam({ name: "id", description: "ID de la notificación a obtener", type: Number })
@@ -59,6 +67,15 @@ export class NotificationsController {
   @ApiResponse({ status: 404, description: "Notificación no encontrada" })
   async remove(@Param("id") id: number): Promise<void> {
     await this.notificationsService.remove(id);
+  }
+
+  @Delete("employee/:employeeId")
+  @ApiOperation({ summary: "Eliminar todas las notificaciones de un empleado por ID" })
+  @ApiParam({ name: "employeeId", description: "ID del empleado para eliminar sus notificaciones", type: Number })
+  @ApiResponse({ status: 200, description: "Todas las notificaciones del empleado eliminadas exitosamente" })
+  @ApiResponse({ status: 404, description: "Empleado no encontrado" })
+  async removeAllByEmployeeId(@Param("employeeId") employeeId: number): Promise<void> {
+    await this.notificationsService.removeAllByEmployeeId(employeeId);
   }
 
   // @Post()

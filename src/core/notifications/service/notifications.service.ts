@@ -50,6 +50,20 @@ export class NotificationsService {
     });
   }
 
+  // Obtener todas las notificaciones de un empleado
+  async findNotificationsByEmployeeId(employeeId: number): Promise<Notification[]> {
+    const employee = await this.employeeRepository.findOne({
+      where: { user: { id: employeeId } },
+      relations: ["notifications"],
+    });
+
+    if (!employee) {  
+      throw new NotFoundException(`Employee with ID ${employeeId} not found`);
+    }
+
+    return employee.notifications;
+  }
+
   // Obtener notificación por ID
   async findOne(id: number): Promise<Notification> {
     const notification = await this.notificationRepository.findOne({
@@ -74,6 +88,20 @@ export class NotificationsService {
   async remove(id: number): Promise<void> {
     const notification = await this.findOne(id);
     await this.notificationRepository.remove(notification);
+  }
+
+  // Eliminar todas las notificaciones de un empleado
+  async removeAllByEmployeeId(employeeId: number): Promise<void> {
+    const employee = await this.employeeRepository.findOne({
+      where: { user: { id: employeeId } },
+      relations: ['notifications'],
+    });
+
+    if (!employee) {
+      throw new NotFoundException(`Employee with ID ${employeeId} not found`);
+    }
+
+    await this.notificationRepository.remove(employee.notifications);
   }
 
   // Obtener número de notificaciones sin leer para un empleado

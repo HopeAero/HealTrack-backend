@@ -117,7 +117,7 @@ export class PatientsController {
 
   @Post(":id/panic-button")
   @HttpCode(HttpStatus.NO_CONTENT)
-  async handlePanicButton(@Param("id") id: string) {
-    await this.patientsService.handlePanicButton(+id);
+  async handlePanicButton(@Param("id") id: number) {
+    await this.patientsService.handlePanicButton(id);
   }
 }
