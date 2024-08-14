@@ -55,6 +55,11 @@ export class NotificationsService {
     const employee = await this.employeeRepository.findOne({
       where: { user: { id: employeeId } },
       relations: ["notifications"],
+      order: {
+        notifications: {
+          createdAt: "DESC"
+        }
+      }
     });
 
     if (!employee) {  
