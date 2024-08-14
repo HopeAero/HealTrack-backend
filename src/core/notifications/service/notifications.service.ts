@@ -111,6 +111,13 @@ export class NotificationsService {
     });
   }
 
+  // Cambiar el isRead a True
+  async markAsRead(id: number): Promise<Notification> {
+    const notification = await this.findOne(id);
+    notification.isRead = true;
+    return this.notificationRepository.save(notification);
+  }
+
   //Ver notificacion Funcion vieja
   async viewNotification(notificationId: string) {
     return await this.onesignalService.viewNotification({ id: notificationId });

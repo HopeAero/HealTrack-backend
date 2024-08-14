@@ -78,6 +78,15 @@ export class NotificationsController {
     await this.notificationsService.removeAllByEmployeeId(employeeId);
   }
 
+  @Patch("mark-as-read/:id")
+  @ApiOperation({ summary: "Marcar una notificación como leída" })
+  @ApiParam({ name: "id", description: "ID de la notificación a marcar como leída", type: Number })
+  @ApiResponse({ status: 200, description: "Notificación marcada como leída exitosamente", type: Notification })
+  @ApiResponse({ status: 404, description: "Notificación no encontrada" })
+  async markAsRead(@Param("id") id: number): Promise<Notification> {
+    return this.notificationsService.markAsRead(id);
+  }
+
   // @Post()
   // async send(@Body() createNotificationDto: CreateNotificationDto) {
   //   return await this.notificationsService.createNotification(createNotificationDto.message);
