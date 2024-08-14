@@ -15,6 +15,8 @@ import { Message } from "@src/core/messagges/entities/messagge.entity";
 import { SocketService } from "@src/common/modules/external/services/socket.service";
 import { envData } from "@src/config/typeorm";
 import { MessageContent } from "@src/constants/message/type";
+import { NotificationsService } from "@src/core/notifications/service/notifications.service";
+import { MessageNotificationsService } from "@src/core/messageNotifications/service/messageNotifications.service";
 
 @Injectable()
 export class ChatsService {
@@ -26,6 +28,7 @@ export class ChatsService {
     private socketService: SocketService,
     @InjectRepository(Message)
     private readonly messaRepo: Repository<Message>,
+    private readonly messageNotificationsService: MessageNotificationsService
   ) {}
 
   async getUserFromSocket(socket: Socket) {
@@ -182,6 +185,16 @@ export class ChatsService {
       chat.last_message = savedMessage;
 
       await this.charRepo.save(chat);
+
+      // Crear una notificación para el usuario receptor
+      const recipient = chat.users.find(u => u.id !== user.id); // Asumiendo que hay solo un receptor por chat
+      if (recipient) {
+        await this.messageNotificationsService.create({
+          title: `Tienes un nuevo mensaje de: ${userRepo.name} ${userRepo.lastname}. Revisa el Chat`,
+          message: messageDto.message,
+          userId: recipient.id,
+        });
+      }
 
       return savedMessage;
     }

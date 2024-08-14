@@ -21,6 +21,7 @@ import { MailerConfigModule } from "./core/mailerModule/mailer.module";
 import { HospitalsModule } from "./core/employees/hospital.module";
 import { FAQsModule } from "./core/faqs/faqs.module";
 import { RecommendationsModule } from "./core/recommendations/recommendations.module";
+import { MessageNotificationsModule } from "./core/messageNotifications/messageNotifications.module";
 
 @Module({
   imports: [
@@ -49,6 +50,7 @@ import { RecommendationsModule } from "./core/recommendations/recommendations.mo
     NotificationsModule,
     FAQsModule,
     RecommendationsModule,
+    MessageNotificationsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

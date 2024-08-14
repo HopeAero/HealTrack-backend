@@ -14,6 +14,7 @@ import { MulterModule } from "@nestjs/platform-express";
 import { diskStorage } from "multer";
 import { extname } from "path";
 import { Message } from "../messagges/entities/messagge.entity";
+import { MessageNotificationsModule } from "../messageNotifications/messageNotifications.module";
 
 @Module({
   imports: [
@@ -32,6 +33,7 @@ import { Message } from "../messagges/entities/messagge.entity";
     ExternalModule,
     PatientsModule,
     EmployeesModule,
+    MessageNotificationsModule,
   ],
   controllers: [ChatsController],
   providers: [ChatsService, AuthService],

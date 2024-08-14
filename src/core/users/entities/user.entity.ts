@@ -2,6 +2,7 @@ import { ApiProperty } from "@nestjs/swagger";
 import { AllRole } from "@src/constants";
 import { Chat } from "@src/core/chats/entities/chat.entity";
 import { Employee } from "@src/core/employees/entities/employee.entity";
+import { MessageNotification } from "@src/core/messageNotifications/entities/messageNotifications.entity";
 import { Message } from "@src/core/messagges/entities/messagge.entity";
 import { Patient } from "@src/core/patients/entities/patient.entity";
 import { ReportMedic } from "@src/core/reports/entities/report.entity";
@@ -74,6 +75,10 @@ export class User {
 
   @OneToMany((type) => ReportMedic, (report: ReportMedic) => report.user)
   report: ReportMedic[];
+
+  @ApiProperty({ type: () => MessageNotification })
+  @OneToMany(() => MessageNotification, (messageNotifications) => messageNotifications.user)
+  messageNotifications: MessageNotification[];
 
   @ApiProperty()
   @CreateDateColumn()
