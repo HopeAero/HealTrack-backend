@@ -19,6 +19,7 @@ import { UpdateReportDto } from "../dto/update-report.dto";
 import * as ExcelJS from "exceljs";
 import * as dayjs from "dayjs";
 import { User } from "@src/core/users/entities/user.entity";
+import { Patient } from "@src/core/patients/entities/patient.entity";
 
 @Injectable()
 export class ReportsService {
@@ -27,6 +28,8 @@ export class ReportsService {
     private readonly reportRepository: Repository<ReportMedic>,
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
+    @InjectRepository(Patient)
+    private readonly patientRepository: Repository<Patient>,
     private readonly userService: UsersService,
   ) {}
 
@@ -334,19 +337,41 @@ export class ReportsService {
     return user.patient.surgeryProcedure || "No especificado";
   }
 
+  async getPatientInformationById(userId: number): Promise<any> {
+    const user = await this.userRepository.findOne({
+      where: { id: userId },
+      relations: ["patient"],
+    });
+  
+    if (!user || !user.patient) {
+      return null; // Retorna null si no se encuentra el paciente
+    }
+  
+    const patient = user.patient;
+    return {
+      email: user.email,
+      identification: user.identification,
+      age: patient.age,
+      address: patient.address,
+      personalPhone: patient.personalPhone,
+      homePhone: patient.homePhone,
+      hospital: patient.hospital.name, // Suponiendo que `hospital` es un objeto con un campo `name`
+    };
+  }  
+
   // Función existente para exportar los reportes a Excel
   async exportReportsToExcel() {
     const reports = await this.reportRepository.find({
-      relations: ["user", "user.patient"],
+      relations: ["user"],
     });
-
+  
     if (reports.length === 0) {
       throw new NotFoundException("No reports found");
     }
-
+  
     const workbook = new ExcelJS.Workbook();
     const worksheet = workbook.addWorksheet("Reports");
-
+  
     // Añadir cabeceras
     worksheet.columns = [
       { header: "Fecha", key: "fecha", width: 15 },
@@ -358,12 +383,23 @@ export class ReportsService {
       { header: "¿Tuvo gasto relacionado con la cirugía?", key: "tuvo_gasto", width: 50 },
       { header: "Monto aproximado de los gastos (en $)", key: "monto", width: 40 },
       { header: "Descripción", key: "descripcion", width: 50 },
-      { header: "Tipo de cirugía", key: "tipoCirugia", width: 30 },
+      { header: "Tipo de cirugía", key: "tipoCirugia", width: 60 },
+      { header: "Email", key: "email", width: 30 },
+      { header: "Identificación", key: "identificacion", width: 20 },
+      { header: "Edad", key: "edad", width: 10 },
+      { header: "Dirección", key: "direccion", width: 40 },
+      { header: "Teléfono personal", key: "telefonoPersonal", width: 20 },
+      { header: "Teléfono de casa", key: "telefonoCasa", width: 20 },
+      { header: "Hospital", key: "hospital", width: 30 },
     ];
-
+  
     // Añadir los datos de los reportes
     for (const report of reports) {
+      const patientInfo = await this.getPatientInformationById(report.user.id);
       const surgeryProcedure = await this.getSurgeryProcedureByUserId(report.user.id);
+
+      console.log(patientInfo)
+  
       worksheet.addRow({
         fecha: dayjs(report.createdAt).format("DD/MM/YYYY"),
         paciente: report.user.name + " " + report.user.lastname,
@@ -375,6 +411,13 @@ export class ReportsService {
         monto: report.surgeryExpenseAmount,
         descripcion: report.additionalInformation,
         tipoCirugia: surgeryProcedure,
+        email: patientInfo?.email || "No especificado", // Verificar si patientInfo es null
+        identificacion: patientInfo?.identification || "No especificado",
+        edad: patientInfo?.age || "No especificado",
+        direccion: patientInfo?.address || "No especificado",
+        telefonoPersonal: patientInfo?.personalPhone || "No especificado",
+        telefonoCasa: patientInfo?.homePhone || "No especificado",
+        hospital: patientInfo?.hospital || "No especificado",
       });
     }
 
