@@ -16,12 +16,12 @@ import { ServeStaticModule } from "@nestjs/serve-static/dist/serve-static.module
 import { join } from "path";
 import { NotificationsModule } from "./core/notifications/notifications.module";
 import { ScheduleModule } from "@nestjs/schedule";
-import { MailerService } from "@nestjs-modules/mailer";
 import { MailerConfigModule } from "./core/mailerModule/mailer.module";
 import { HospitalsModule } from "./core/employees/hospital.module";
 import { FAQsModule } from "./core/faqs/faqs.module";
 import { RecommendationsModule } from "./core/recommendations/recommendations.module";
 import { MessageNotificationsModule } from "./core/messageNotifications/messageNotifications.module";
+import { SurgeriesModule } from "./core/surgeries/surgeries.module";
 
 @Module({
   imports: [
@@ -51,6 +51,7 @@ import { MessageNotificationsModule } from "./core/messageNotifications/messageN
     FAQsModule,
     RecommendationsModule,
     MessageNotificationsModule,
+    SurgeriesModule,
   ],
   controllers: [AppController],
   providers: [AppService],
