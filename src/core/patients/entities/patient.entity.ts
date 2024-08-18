@@ -25,11 +25,11 @@ export class Patient {
   address: string;
 
   @ApiProperty()
-  @Column({ unique: true })
+  @Column()
   personalPhone: string;
 
   @ApiProperty()
-  @Column({ default: "", nullable: true, unique: false })
+  @Column({ default: "", nullable: true })
   homePhone: string;
 
   @ApiProperty({ type: () => Hospital })
