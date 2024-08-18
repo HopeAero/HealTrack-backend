@@ -37,12 +37,10 @@ export class CreatePatientDto {
 
   @ApiProperty({ example: "1234567890", required: true })
   @IsNotEmpty()
-  @IsNumberString()
   personalPhone: string;
 
   @ApiProperty({ example: "0987654321", required: true })
   @IsNotEmpty()
-  @IsNumberString()
   homePhone: string;
 
   @ApiProperty({ type: CreateHospitalDto, required: true })

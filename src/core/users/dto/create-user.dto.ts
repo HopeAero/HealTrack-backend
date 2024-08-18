@@ -21,8 +21,8 @@ export class CreateUserDto {
   @IsNotEmpty()
   @IsDefined()
   @IsString()
-  @MinLength(4)
-  @MaxLength(20)
+  @MinLength(1)
+  @MaxLength(50)
   name: string;
 
   @ApiProperty({ example: "Salcedo", required: true })
@@ -40,16 +40,14 @@ export class CreateUserDto {
   @IsNotEmpty()
   @Validate(isUniqueDb, ["user", "identification", "La cédula ya existe"])
   @IsString()
-  @MinLength(8)
-  @MaxLength(20)
+  @MinLength(1)
   identification: string;
 
   @ApiProperty({ example: "S@lcedo2001", required: true })
   @IsNotEmpty()
   @IsDefined()
   @IsString()
-  @MinLength(8)
-  @MaxLength(20)
+  @MinLength(1)
   @Matches(/((?=.*\d)|(?=.*\W+))(?![.\n])(?=.*[A-Z])(?=.*[a-z]).*$/, {
     message: "contraseña muy débil",
   })

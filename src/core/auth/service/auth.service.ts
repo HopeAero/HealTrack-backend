@@ -83,9 +83,37 @@ export class AuthService {
   //Funcion de Registro de paciente
   async registerPatient(createPatientDto: CreatePatientDto, user: UserActiveInterface) {
     const userExist = await this.userService.getByEmail(createPatientDto.user.email);
+ 
+    if(createPatientDto.user.name.length<1 || createPatientDto.user.name.length>50){
+      throw new BadRequestException("El nombre debe estar entre 1 y 50 caraacteres");
+    }
+
+    if(createPatientDto.user.lastname.length<1 || createPatientDto.user.lastname.length>50){
+      throw new BadRequestException("El nombre debe estar entre 1 y 50 caraacteres");
+    }
+    
+    if (createPatientDto.age<0 || createPatientDto.age>100){
+      throw new BadRequestException("La edad debe estar entre 0 y 100 años de edad");
+    }
+
+    if (!/^\d+$/.test(createPatientDto.personalPhone)) {
+      throw new BadRequestException("El número de teléfono personal debe contener solo dígitos");
+    }
+
+    if (!/^\d+$/.test(createPatientDto.homePhone)) {
+      throw new BadRequestException("El número de teléfono de casa debe contener solo dígitos");
+    }
+
+    if(createPatientDto.user.identification.length<5 || createPatientDto.user.identification.length>20){
+      throw new BadRequestException("La dentificacion debe estar entre 5 y 20 caraacteres");
+    }
 
     if (userExist) {
       throw new BadRequestException("correo ya registrado");
+    }
+
+    if(createPatientDto.user.password.length<8 || createPatientDto.user.password.length<20){
+      throw new BadRequestException("La contraseña debe tener 8 aracteres como mínimo");
     }
 
     if (user.role !== AllRole.ASSISTANT) {
@@ -140,8 +168,24 @@ export class AuthService {
   async registerEmployee(createEmployeeDto: CreateEmployeeDto) {
     const userExist = await this.userService.getByEmail(createEmployeeDto.user.email);
 
+    if(createEmployeeDto.user.name.length<1 || createEmployeeDto.user.name.length>50){
+      throw new BadRequestException("El nombre debe estar entre 1 y 50 caraacteres");
+    }
+
+    if(createEmployeeDto.user.lastname.length<1 || createEmployeeDto.user.lastname.length>50){
+      throw new BadRequestException("El apellido debe estar entre 1 y 50 caraacteres");
+    }
+
+    if(createEmployeeDto.user.identification.length<5 || createEmployeeDto.user.identification.length>20){
+      throw new BadRequestException("La dentificacion debe estar entre 5 y 20 caraacteres");
+    }
+    
     if (userExist) {
       throw new BadRequestException("correo ya registrado");
+    }
+
+    if(createEmployeeDto.user.password.length<8 || createEmployeeDto.user.password.length>20){
+      throw new BadRequestException("La contraseña debe tener 8 aracteres como mínimo");
     }
 
     const password = await bcryptjs.hash(createEmployeeDto.user.password, 10);
