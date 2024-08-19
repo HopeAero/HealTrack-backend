@@ -22,6 +22,7 @@ import { FAQsModule } from "./core/faqs/faqs.module";
 import { RecommendationsModule } from "./core/recommendations/recommendations.module";
 import { MessageNotificationsModule } from "./core/messageNotifications/messageNotifications.module";
 import { SurgeriesModule } from "./core/surgeries/surgeries.module";
+import { DatabaseActionsModule } from "./core/databaseActions/databaseActions.module";
 
 @Module({
   imports: [
@@ -52,6 +53,7 @@ import { SurgeriesModule } from "./core/surgeries/surgeries.module";
     RecommendationsModule,
     MessageNotificationsModule,
     SurgeriesModule,
+    DatabaseActionsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

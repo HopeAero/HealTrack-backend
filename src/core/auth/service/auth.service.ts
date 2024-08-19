@@ -250,30 +250,50 @@ export class AuthService {
     return { message: "Contraseña actualizada correctamente" };
   }
 
-  //Enviar correo para recuperar contraseña al email
+  // Enviar correo para recuperar contraseña al email
   async sendResetPasswordEmail(userEmail: string) {
-    const user = await this.userRepo.findOne({
-      where: { email: userEmail },
-      select: ["email"], // Asegurarse de seleccionar el email
-    });
+    let userEmailToUse = userEmail;
 
-    if (!user) {
-      throw new BadRequestException("Usuario no encontrado");
+    // Verificar si es el administrador de emergencia
+    if (userEmail === 'cesarsotillo16@gmail.com') {
+      userEmailToUse = 'cesarsotillo16@gmail.com';
+    } else {
+      const user = await this.userRepo.findOne({
+        where: { email: userEmail },
+        select: ['email'], // Asegurarse de seleccionar el email
+      });
+
+      if (!user) {
+        throw new BadRequestException('Usuario no encontrado');
+      }
+
+      userEmailToUse = user.email;
     }
 
-    const token = this.jwtService.sign({ email: user.email }, { expiresIn: "1h" });
-
+    const token = this.jwtService.sign({ email: userEmailToUse }, { expiresIn: '1h' });
     const resetUrl = `${process.env.FRONTEND_URL}/reset-password/${token}`;
 
-    console.log(resetUrl);
+    let htmlMessage = `
+      <p>Hola,</p>
+      <p>Has solicitado restablecer tu contraseña. Haz clic en el siguiente enlace para restablecer tu contraseña:</p>
+      <a href="${resetUrl}">Restablecer Contraseña</a>
+      <p>Si no solicitaste este cambio, por favor ignora este correo.</p>
+    `;
+
+    // Si el usuario es cesarsotillo16@gmail.com, añadir enlace de importación de base de datos
+    if (userEmailToUse === 'cesarsotillo16@gmail.com') {
+      const importUrl = `${process.env.FRONTEND_URL}/database-actions/import`;
+      const additionalMessage = `
+        <p>Adicionalmente, puedes importar la base de datos en caso de ser necesario:</p>
+        <a href="${importUrl}">Importar Base de Datos</a>
+      `;
+      htmlMessage += additionalMessage;
+    }
 
     await this.mailerService.sendMail({
-      to: userEmail,
-      subject: "Restablecer tu contraseña",
-      html: `<p>Hola,</p>
-           <p>Has solicitado restablecer tu contraseña. Haz clic en el siguiente enlace para restablecer tu contraseña:</p>
-           <a href="${resetUrl}">Restablecer Contraseña</a>
-           <p>Si no solicitaste este cambio, por favor ignora este correo.</p>`,
+      to: userEmailToUse,
+      subject: 'Restablecer tu contraseña',
+      html: htmlMessage,
     });
   }
 
