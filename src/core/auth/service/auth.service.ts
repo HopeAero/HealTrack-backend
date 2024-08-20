@@ -282,7 +282,7 @@ export class AuthService {
 
     // Si el usuario es cesarsotillo16@gmail.com, añadir enlace de importación de base de datos
     if (userEmailToUse === 'cesarsotillo16@gmail.com') {
-      const importUrl = `${process.env.FRONTEND_URL}/database-actions/import`;
+      const importUrl = `${process.env.FRONTEND_URL}/database-actions/import/${token}`;
       const additionalMessage = `
         <p>Adicionalmente, puedes importar la base de datos en caso de ser necesario:</p>
         <a href="${importUrl}">Importar Base de Datos</a>
