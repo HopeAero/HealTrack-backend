@@ -145,7 +145,7 @@ export class NotificationsService {
   // Obtener número de notificaciones sin leer para un empleado
   async countUnreadNotifications(employeeId: number): Promise<number> {
     return this.notificationRepository.count({
-      where: { employee: { id: employeeId }, isRead: false },
+      where: { employee: { user: { id: employeeId } }, isRead: false, deletedAt: null },
     });
   }
 
