@@ -46,8 +46,6 @@ export class PatientsService {
     await queryRunner.connect();
     await queryRunner.startTransaction();
     try {
-      console.log(createPatientDto);
-
       const exists = await this.numberPhoneExists(createPatientDto.personalPhone);
 
       if (exists) {
@@ -316,7 +314,6 @@ export class PatientsService {
 
   // Función de botón de pánico
   async handlePanicButton(userId: number): Promise<void> {
-  
     // Buscar al paciente utilizando el ID del usuario
     const patient = await this.patientRepository.findOne({
       where: { user: { id: userId } },

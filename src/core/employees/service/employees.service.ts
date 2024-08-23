@@ -39,8 +39,6 @@ export class EmployeesService {
       // Validar que el hospital existe
       const hospital = await this.hospitalRepository.findOne({ where: { name: createEmployeeDto.hospital.name } });
 
-      console.log(hospital);
-
       if (!hospital) {
         throw new BadRequestException("El hospital proporcionado no existe");
       }

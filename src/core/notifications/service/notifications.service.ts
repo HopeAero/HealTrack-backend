@@ -4,7 +4,7 @@ import { IViewNotificationsInput, NotificationBySegmentBuilder } from "onesignal
 import { InjectRepository } from "@nestjs/typeorm";
 import { Employee } from "@src/core/employees/entities/employee.entity";
 import { Notification } from "../entities/notification.entity";
-import { Equal, Repository } from "typeorm";
+import { Equal, IsNull, Not, Repository } from "typeorm";
 import { CreateNotificationDto } from "../dto/create-notification.dto";
 
 @Injectable()
@@ -46,6 +46,14 @@ export class NotificationsService {
   // Obtener todas las notificaciones
   async findAll(): Promise<Notification[]> {
     return this.notificationRepository.find({
+      where: { deletedAt: null },
+      relations: ["employee"],
+    });
+  }
+
+  // Obtener todas las notificaciones incluyendo las eliminadas
+  async findAllComplete(): Promise<Notification[]> {
+    return this.notificationRepository.find({
       relations: ["employee"],
     });
   }
@@ -57,16 +65,17 @@ export class NotificationsService {
       relations: ["notifications"],
       order: {
         notifications: {
-          createdAt: "DESC"
-        }
-      }
+          createdAt: "DESC",
+        },
+      },
     });
 
-    if (!employee) {  
+    if (!employee) {
       throw new NotFoundException(`Employee with ID ${employeeId} not found`);
     }
 
-    return employee.notifications;
+    // Filtra las notificaciones para que solo se devuelvan aquellas que no están eliminadas
+    return employee.notifications.filter((notification) => notification.deletedAt === null);
   }
 
   // Obtener notificación por ID
@@ -92,21 +101,45 @@ export class NotificationsService {
   // Eliminar notificación
   async remove(id: number): Promise<void> {
     const notification = await this.findOne(id);
-    await this.notificationRepository.remove(notification);
+
+    if (!notification) {
+      throw new NotFoundException(`Notification with ID ${id} not found`);
+    }
+
+    notification.deletedAt = new Date();
+    notification.isRead = true;
+    await this.notificationRepository.save(notification);
+  }
+
+  // Eliminar notificación con deleteAt
+  async removeAllDeleted(): Promise<void> {
+    const deletedNotifications = await this.notificationRepository.find({
+      where: { deletedAt: Not(IsNull()) },
+    });
+
+    if (deletedNotifications.length > 0) {
+      await this.notificationRepository.remove(deletedNotifications);
+    }
   }
 
   // Eliminar todas las notificaciones de un empleado
   async removeAllByEmployeeId(employeeId: number): Promise<void> {
     const employee = await this.employeeRepository.findOne({
       where: { user: { id: employeeId } },
-      relations: ['notifications'],
+      relations: ["notifications"],
     });
 
     if (!employee) {
       throw new NotFoundException(`Employee with ID ${employeeId} not found`);
     }
 
-    await this.notificationRepository.remove(employee.notifications);
+    const notifications = employee.notifications.map((notification) => {
+      notification.deletedAt = new Date();
+      notification.isRead = true;
+      return notification;
+    });
+
+    await this.notificationRepository.save(notifications);
   }
 
   // Obtener número de notificaciones sin leer para un empleado

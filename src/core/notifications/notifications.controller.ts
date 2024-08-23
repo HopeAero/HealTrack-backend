@@ -1,4 +1,16 @@
-import { Controller, Get, Post, Body, Param, Patch, Delete, NotFoundException, Query } from "@nestjs/common";
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Param,
+  Patch,
+  Delete,
+  NotFoundException,
+  Query,
+  HttpStatus,
+  HttpCode,
+} from "@nestjs/common";
 import { NotificationsService } from "./service/notifications.service";
 import { ApiTags, ApiOperation, ApiParam, ApiResponse } from "@nestjs/swagger";
 import { CreateNotificationDto } from "./dto/create-notification.dto";
@@ -23,11 +35,24 @@ export class NotificationsController {
     return this.notificationsService.findAll();
   }
 
+  @Get("complete")
+  @ApiOperation({ summary: "Obtener todas las notificaciones" })
+  @ApiResponse({ status: 200, description: "Lista de todas las notificaciones", type: [Notification] })
+  async findAllComplete(): Promise<Notification[]> {
+    return this.notificationsService.findAllComplete();
+  }
+
   @Get("count/unread")
   @ApiOperation({ summary: "Contar el número de notificaciones no leídas para un empleado" })
   @ApiResponse({ status: 200, description: "Número de notificaciones no leídas" })
   async countUnreadNotifications(@Query("employeeId") employeeId: number): Promise<number> {
     return this.notificationsService.countUnreadNotifications(employeeId);
+  }
+
+  @Delete("remove-all-deleted")
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async removeAllDeleted(): Promise<void> {
+    await this.notificationsService.removeAllDeleted();
   }
 
   @Get("employee/:employeeId")

@@ -1,5 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { Column, CreateDateColumn, Entity, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
+import { Column, CreateDateColumn, Entity, ManyToOne, PrimaryGeneratedColumn, DeleteDateColumn } from "typeorm";
 import { Employee } from "@src/core/employees/entities/employee.entity";
 
 @Entity()
@@ -23,6 +23,10 @@ export class Notification {
   @ApiProperty()
   @CreateDateColumn({ type: "timestamp", default: () => "CURRENT_TIMESTAMP" })
   createdAt: Date;
+
+  @ApiProperty()
+  @DeleteDateColumn({ type: "timestamp", nullable: true })
+  deletedAt: Date | null;
 
   @ApiProperty({ type: () => Employee })
   @ManyToOne(() => Employee, (employee) => employee.notifications, { nullable: false })
