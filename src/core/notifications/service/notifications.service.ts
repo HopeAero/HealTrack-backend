@@ -1,11 +1,13 @@
 import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
-import { OneSignalService, IOneSignalModuleOptions } from "onesignal-api-client-nest";
-import { IViewNotificationsInput, NotificationBySegmentBuilder } from "onesignal-api-client-core";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Employee } from "@src/core/employees/entities/employee.entity";
 import { Notification } from "../entities/notification.entity";
 import { Equal, IsNull, Not, Repository } from "typeorm";
 import { CreateNotificationDto } from "../dto/create-notification.dto";
+import { Patient } from "@src/core/patients/entities/patient.entity";
+import { User } from "@src/core/users/entities/user.entity";
+import * as ExcelJS from "exceljs";
+import * as dayjs from "dayjs";
 
 @Injectable()
 export class NotificationsService {
@@ -16,12 +18,15 @@ export class NotificationsService {
     @InjectRepository(Employee)
     private readonly employeeRepository: Repository<Employee>,
 
-    private readonly onesignalService: OneSignalService,
+    @InjectRepository(Patient)
+    private readonly patientRepository: Repository<Patient>,
   ) {}
 
   // Crear notificación
   async create(createNotificationDto: CreateNotificationDto): Promise<Notification> {
-    const { title, message, employeeId } = createNotificationDto;
+    const { title, message, employeeId, patientId } = createNotificationDto;
+
+    console.log(createNotificationDto);
 
     // Verificar que el employeeId no sea nulo
     if (!employeeId) {
@@ -34,10 +39,22 @@ export class NotificationsService {
       throw new NotFoundException(`Employee with ID ${employeeId} not found`);
     }
 
+    // Verificar que el employeeId no sea nulo
+    if (!patientId) {
+      throw new BadRequestException("Patient ID is required to create a notification");
+    }
+
+    const patient = await this.patientRepository.findOne({ where: { id: patientId } });
+
+    if (!patient) {
+      throw new NotFoundException(`Patient with ID ${patientId} not found`);
+    }
+
     const notification = this.notificationRepository.create({
       title,
       message,
       employee,
+      patient,
     });
 
     return this.notificationRepository.save(notification);
@@ -56,6 +73,84 @@ export class NotificationsService {
     return this.notificationRepository.find({
       relations: ["employee"],
     });
+  }
+
+  // Obtener la lista de pacientes y la cantidad de veces que han pulsado el botón de pánico
+  async getPanicButtonCounts(): Promise<
+    {
+      patient: Patient;
+      user: User;
+      panicCount: number;
+    }[]
+  > {
+    // Primero, obtén todas las notificaciones que no están eliminadas
+    const notifications = await this.notificationRepository.find({
+      where: { deletedAt: null },
+      relations: ["patient"],
+    });
+
+    // Crea un mapa para contar las notificaciones por paciente
+    const patientPanicCounts = new Map<number, number>();
+
+    // Recorre las notificaciones y cuenta las notificaciones por paciente
+    for (const notification of notifications) {
+      if (notification.patient) {
+        const patientId = notification.patient.id;
+        const currentCount = patientPanicCounts.get(patientId) || 0;
+        patientPanicCounts.set(patientId, currentCount + 1);
+      }
+    }
+
+    // Obtén los pacientes junto con sus usuarios
+    const patients = await this.patientRepository.find({
+      relations: ["user"], // Asegúrate de que la relación 'user' esté incluida
+    });
+
+    // Crea una lista para almacenar los resultados
+    const result = [];
+
+    // Recorre los pacientes y agrega la información requerida
+    for (const patient of patients) {
+      const count = patientPanicCounts.get(patient.id) || 0;
+      result.push({
+        patient,
+        user: patient.user,
+        panicCount: Math.floor(count / 2), // Divide el conteo por 2
+      });
+    }
+    return result;
+  }
+
+  // Exportar pacientes y conteo de pánicos a Excel
+  async exportPanicButtonCountsToExcel(): Promise<Buffer> {
+    const data = await this.getPanicButtonCounts();
+
+    // Crea un nuevo libro de trabajo
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet("Panic Button Counts");
+
+    // Agrega las cabeceras
+    worksheet.columns = [
+      { header: "ID Paciente", key: "id", width: 15 },
+      { header: "Nombre Completo", key: "fullName", width: 30 },
+      { header: "Veces que llamo al boton de pánico", key: "panicCount", width: 35 },
+      { header: "Correo Electrónico", key: "email", width: 50 },
+    ];
+
+    // Agrega los datos
+    data.forEach(({ patient, user, panicCount }) => {
+      worksheet.addRow({
+        id: patient.id,
+        fullName: `${user.name} ${user.lastname}`,
+        panicCount,
+        email: `${user.email}`,
+      });
+    });
+
+    // Genera el archivo Excel en formato Buffer
+    const uint8Array = await workbook.xlsx.writeBuffer();
+    const buffer = Buffer.from(uint8Array);
+    return buffer;
   }
 
   // Obtener todas las notificaciones de un empleado
@@ -154,32 +249,5 @@ export class NotificationsService {
     const notification = await this.findOne(id);
     notification.isRead = true;
     return this.notificationRepository.save(notification);
-  }
-
-  //Ver notificacion Funcion vieja
-  async viewNotification(notificationId: string) {
-    return await this.onesignalService.viewNotification({ id: notificationId });
-  }
-
-  async viewNotifications() {
-    const input: IViewNotificationsInput = {
-      offset: 0,
-      limit: 50,
-      kind: 0,
-    };
-
-    return await this.onesignalService.viewNotifications(input);
-  }
-
-  async createNotification(message: string) {
-    const input = new NotificationBySegmentBuilder()
-      .setIncludedSegments(["Total Subscriptions"])
-      .notification()
-      .setContents({ en: message })
-      .build();
-
-    const notification = await this.onesignalService.createNotification(input);
-
-    return notification;
   }
 }

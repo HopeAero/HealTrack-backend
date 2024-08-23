@@ -1,6 +1,7 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { Column, CreateDateColumn, Entity, ManyToOne, PrimaryGeneratedColumn, DeleteDateColumn } from "typeorm";
 import { Employee } from "@src/core/employees/entities/employee.entity";
+import { Patient } from "@src/core/patients/entities/patient.entity";
 
 @Entity()
 export class Notification {
@@ -31,4 +32,8 @@ export class Notification {
   @ApiProperty({ type: () => Employee })
   @ManyToOne(() => Employee, (employee) => employee.notifications, { nullable: false })
   employee: Employee;
+
+  @ApiProperty({ type: () => Patient })
+  @ManyToOne(() => Patient, (patient) => patient.notifications, { nullable: false })
+  patient: Patient;
 }

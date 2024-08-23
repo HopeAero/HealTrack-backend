@@ -22,4 +22,9 @@ export class CreateNotificationDto {
   @IsNotEmpty()
   @IsOptional()
   employeeId?: number;
+
+  @ApiProperty({ example: 1, description: "ID of the patient to notify", required: true })
+  @IsNotEmpty()
+  @IsOptional()
+  patientId?: number;
 }

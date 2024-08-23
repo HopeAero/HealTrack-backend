@@ -10,11 +10,13 @@ import {
   Query,
   HttpStatus,
   HttpCode,
+  Res,
 } from "@nestjs/common";
 import { NotificationsService } from "./service/notifications.service";
 import { ApiTags, ApiOperation, ApiParam, ApiResponse } from "@nestjs/swagger";
 import { CreateNotificationDto } from "./dto/create-notification.dto";
 import { Notification } from "./entities/notification.entity";
+import { Response } from "express";
 
 @ApiTags("notification")
 @Controller("notifications")
@@ -53,6 +55,25 @@ export class NotificationsController {
   @HttpCode(HttpStatus.NO_CONTENT)
   async removeAllDeleted(): Promise<void> {
     await this.notificationsService.removeAllDeleted();
+  }
+
+  @Get("panic-button-counts")
+  async getPanicButtonCounts() {
+    return this.notificationsService.getPanicButtonCounts();
+  }
+
+  @Get("export-panic-button-counts")
+  async exportPanicButtonCountsToExcel(@Res() res: Response) {
+    try {
+      const buffer = await this.notificationsService.exportPanicButtonCountsToExcel();
+
+      // Configura los encabezados de la respuesta para descargar el archivo Excel
+      res.setHeader("Content-Disposition", 'attachment; filename="panic_button_counts.xlsx"');
+      res.setHeader("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+      res.send(buffer);
+    } catch (error) {
+      return res.status(error.status || 500).json({ message: error.message });
+    }
   }
 
   @Get("employee/:employeeId")
@@ -111,19 +132,4 @@ export class NotificationsController {
   async markAsRead(@Param("id") id: number): Promise<Notification> {
     return this.notificationsService.markAsRead(id);
   }
-
-  // @Post()
-  // async send(@Body() createNotificationDto: CreateNotificationDto) {
-  //   return await this.notificationsService.createNotification(createNotificationDto.message);
-  // }
-
-  // @Get()
-  // async findAllViejo() {
-  //   return await this.notificationsService.viewNotifications();
-  // }
-
-  // @Get(":id")
-  // async findOneViejo(@Param("id") id: string) {
-  //   return await this.notificationsService.viewNotification(id);
-  // }
 }

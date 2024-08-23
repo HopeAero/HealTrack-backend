@@ -365,6 +365,7 @@ export class PatientsService {
         title: titulo,
         message,
         employeeId: patient.asistant.id,
+        patientId: patient.id,
       });
 
       await this.mailerService.sendMail({
@@ -380,6 +381,7 @@ export class PatientsService {
         title: titulo,
         message,
         employeeId: patient.medic.id,
+        patientId: patient.id,
       });
 
       await this.mailerService.sendMail({
