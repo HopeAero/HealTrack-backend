@@ -100,6 +100,7 @@ export class PatientsService {
       patient.homePhone = createPatientDto.homePhone;
       patient.address = createPatientDto.address;
       patient.age = createPatientDto.age;
+      patient.sex = createPatientDto.sex;
       patient.hospital = createPatientDto.hospital;
       patient.surgeryDate = createPatientDto.surgeryDate;
       patient.surgeryProcedure = createPatientDto.surgeryProcedure;

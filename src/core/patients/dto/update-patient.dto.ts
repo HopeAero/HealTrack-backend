@@ -25,64 +25,68 @@ export class UpdatePatientDto {
   @ApiProperty({ example: 30, required: false })
   @IsOptional()
   @IsNumber()
-  age: number;
+  age?: number;
+
+  @ApiProperty({ example: "M", required: true })
+  @IsOptional()
+  sex?: string;
 
   @ApiProperty({ example: "123 Main St", required: false })
   @IsOptional()
   @IsString()
-  address: string;
+  address?: string;
 
   @ApiProperty({ example: "1234567890", required: false })
   @IsOptional()
-  @Validate(isUniqueDb, ["patient", "personalPhone", "El teléfono personal ya existe"])
+  //@Validate(isUniqueDb, ["patient", "personalPhone", "El teléfono personal ya existe"])
   @IsNumberString()
-  personalPhone: string;
+  personalPhone?: string;
 
   @ApiProperty({ example: "0987654321", required: false })
   @IsOptional()
-  @Validate(isUniqueDb, ["patient", "homePhone", "El teléfono de casa ya existe"])
+  //@Validate(isUniqueDb, ["patient", "homePhone", "El teléfono de casa ya existe"])
   @IsNumberString()
-  homePhone: string;
+  homePhone?: string;
 
   @ApiProperty({ type: () => CreateHospitalDto, required: false })
   @IsOptional()
   @Type(() => CreateHospitalDto)
   @ValidateNested()
-  hospital: CreateHospitalDto;
+  hospital?: CreateHospitalDto;
 
   @ApiProperty({ example: "2022-12-31", required: false })
   @IsOptional()
   @IsString()
-  surgeryDate: string;
+  surgeryDate?: string;
 
   @ApiProperty({ example: "Appendectomy", required: false })
   @IsOptional()
   @IsString()
-  surgeryProcedure: string;
+  surgeryProcedure?: string;
 
   @ApiProperty({ enum: SurgeryType, example: SurgeryType.SURGERYTYPE1, required: false })
   @IsOptional()
   @IsEnum(SurgeryType)
-  surgeryType: SurgeryType;
+  surgeryType?: SurgeryType;
 
   @ApiProperty({ example: true, required: true })
   @IsOptional()
   @IsBoolean()
-  automaticTracking: boolean;
+  automaticTracking?: boolean;
 
   @ApiProperty({ enum: StatusPatient, example: StatusPatient.ACTIVE })
   @IsOptional()
   @IsEnum(StatusPatient, { message: "Status invalido" })
-  status: StatusPatient;
+  status?: StatusPatient;
 
   @ApiProperty({ example: 1 })
   @IsOptional()
   @IsNumber()
-  medicId: number;
+  medicId?: number;
 
   @ApiProperty({ type: UpdateUserDto, required: true })
   @IsOptional()
   @Type(() => UpdateUserDto)
   @ValidateNested()
-  user: UpdateUserDto;
+  user?: UpdateUserDto;
 }

@@ -30,6 +30,10 @@ export class CreatePatientDto {
   @IsNumber()
   age: number;
 
+  @ApiProperty({ example: "M", required: true })
+  @IsNotEmpty()
+  sex: string;
+
   @ApiProperty({ example: "Avenida", required: false })
   @IsOptional()
   @IsString()

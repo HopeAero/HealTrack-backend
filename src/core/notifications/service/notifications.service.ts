@@ -133,8 +133,12 @@ export class NotificationsService {
     worksheet.columns = [
       { header: "ID Paciente", key: "id", width: 15 },
       { header: "Nombre Completo", key: "fullName", width: 30 },
-      { header: "Veces que llamo al boton de pánico", key: "panicCount", width: 35 },
+      { header: "Sexo", key: "sex", width: 15 },
+      { header: "Veces que llamó al boton de pánico", key: "panicCount", width: 35 },
       { header: "Correo Electrónico", key: "email", width: 50 },
+      { header: "Edad", key: "age", width: 5 },
+      { header: "Cirugia", key: "surgery", width: 15 },
+      { header: "Tipo de Cirugia", key: "surgeryType", width: 15 },
     ];
 
     // Agrega los datos
@@ -142,8 +146,12 @@ export class NotificationsService {
       worksheet.addRow({
         id: patient.id,
         fullName: `${user.name} ${user.lastname}`,
+        sex: patient.sex === "M" ? "Masculino" : "Femenino",
         panicCount,
-        email: `${user.email}`,
+        email: user.email,
+        age: patient.age,
+        surgery: patient.surgeryProcedure,
+        surgeryType: patient.surgeryType === "A" ? "Electiva" : "Emergencia",
       });
     });
 

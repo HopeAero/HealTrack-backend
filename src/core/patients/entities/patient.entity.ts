@@ -31,6 +31,10 @@ export class Patient {
   age: number;
 
   @ApiProperty()
+  @Column({ default: "M", nullable: false })
+  sex: string;
+
+  @ApiProperty()
   @Column({ default: "", nullable: true })
   address: string;
 

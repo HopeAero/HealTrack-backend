@@ -83,16 +83,16 @@ export class AuthService {
   //Funcion de Registro de paciente
   async registerPatient(createPatientDto: CreatePatientDto, user: UserActiveInterface) {
     const userExist = await this.userService.getByEmail(createPatientDto.user.email);
- 
-    if(createPatientDto.user.name.length<1 || createPatientDto.user.name.length>50){
+
+    if (createPatientDto.user.name.length < 1 || createPatientDto.user.name.length > 50) {
       throw new BadRequestException("El nombre debe estar entre 1 y 50 caraacteres");
     }
 
-    if(createPatientDto.user.lastname.length<1 || createPatientDto.user.lastname.length>50){
+    if (createPatientDto.user.lastname.length < 1 || createPatientDto.user.lastname.length > 50) {
       throw new BadRequestException("El nombre debe estar entre 1 y 50 caraacteres");
     }
-    
-    if (createPatientDto.age<0 || createPatientDto.age>100){
+
+    if (createPatientDto.age < 0 || createPatientDto.age > 100) {
       throw new BadRequestException("La edad debe estar entre 0 y 100 años de edad");
     }
 
@@ -104,7 +104,7 @@ export class AuthService {
       throw new BadRequestException("El número de teléfono de casa debe contener solo dígitos");
     }
 
-    if(createPatientDto.user.identification.length<5 || createPatientDto.user.identification.length>20){
+    if (createPatientDto.user.identification.length < 5 || createPatientDto.user.identification.length > 20) {
       throw new BadRequestException("La dentificacion debe estar entre 5 y 20 caraacteres");
     }
 
@@ -112,7 +112,7 @@ export class AuthService {
       throw new BadRequestException("correo ya registrado");
     }
 
-    if(createPatientDto.user.password.length<8 || createPatientDto.user.password.length<20){
+    if (createPatientDto.user.password.length < 8 || createPatientDto.user.password.length > 20) {
       throw new BadRequestException("La contraseña debe tener 8 aracteres como mínimo");
     }
 
@@ -168,23 +168,23 @@ export class AuthService {
   async registerEmployee(createEmployeeDto: CreateEmployeeDto) {
     const userExist = await this.userService.getByEmail(createEmployeeDto.user.email);
 
-    if(createEmployeeDto.user.name.length<1 || createEmployeeDto.user.name.length>50){
+    if (createEmployeeDto.user.name.length < 1 || createEmployeeDto.user.name.length > 50) {
       throw new BadRequestException("El nombre debe estar entre 1 y 50 caraacteres");
     }
 
-    if(createEmployeeDto.user.lastname.length<1 || createEmployeeDto.user.lastname.length>50){
+    if (createEmployeeDto.user.lastname.length < 1 || createEmployeeDto.user.lastname.length > 50) {
       throw new BadRequestException("El apellido debe estar entre 1 y 50 caraacteres");
     }
 
-    if(createEmployeeDto.user.identification.length<5 || createEmployeeDto.user.identification.length>20){
+    if (createEmployeeDto.user.identification.length < 5 || createEmployeeDto.user.identification.length > 20) {
       throw new BadRequestException("La dentificacion debe estar entre 5 y 20 caraacteres");
     }
-    
+
     if (userExist) {
       throw new BadRequestException("correo ya registrado");
     }
 
-    if(createEmployeeDto.user.password.length<8 || createEmployeeDto.user.password.length>20){
+    if (createEmployeeDto.user.password.length < 8 || createEmployeeDto.user.password.length > 20) {
       throw new BadRequestException("La contraseña debe tener 8 aracteres como mínimo");
     }
 
@@ -255,22 +255,22 @@ export class AuthService {
     let userEmailToUse = userEmail;
 
     // Verificar si es el administrador de emergencia
-    if (userEmail === 'cesarsotillo16@gmail.com') {
-      userEmailToUse = 'cesarsotillo16@gmail.com';
+    if (userEmail === "cesarsotillo16@gmail.com") {
+      userEmailToUse = "cesarsotillo16@gmail.com";
     } else {
       const user = await this.userRepo.findOne({
         where: { email: userEmail },
-        select: ['email'], // Asegurarse de seleccionar el email
+        select: ["email"], // Asegurarse de seleccionar el email
       });
 
       if (!user) {
-        throw new BadRequestException('Usuario no encontrado');
+        throw new BadRequestException("Usuario no encontrado");
       }
 
       userEmailToUse = user.email;
     }
 
-    const token = this.jwtService.sign({ email: userEmailToUse }, { expiresIn: '1h' });
+    const token = this.jwtService.sign({ email: userEmailToUse }, { expiresIn: "1h" });
     const resetUrl = `${process.env.FRONTEND_URL}/reset-password/${token}`;
 
     let htmlMessage = `
@@ -281,7 +281,7 @@ export class AuthService {
     `;
 
     // Si el usuario es cesarsotillo16@gmail.com, añadir enlace de importación de base de datos
-    if (userEmailToUse === 'cesarsotillo16@gmail.com') {
+    if (userEmailToUse === "cesarsotillo16@gmail.com") {
       const importUrl = `${process.env.FRONTEND_URL}/database-actions/import/${token}`;
       const additionalMessage = `
         <p>Adicionalmente, puedes importar la base de datos en caso de ser necesario:</p>
@@ -292,7 +292,7 @@ export class AuthService {
 
     await this.mailerService.sendMail({
       to: userEmailToUse,
-      subject: 'Restablecer tu contraseña',
+      subject: "Restablecer tu contraseña",
       html: htmlMessage,
     });
   }
