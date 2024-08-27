@@ -254,13 +254,16 @@ export class AuthService {
   async sendResetPasswordEmail(userEmail: string) {
     let userEmailToUse = userEmail;
 
+    const adminEmail1 = process.env.ADMIN_EMAIL_1;
+    const adminEmail2 = process.env.ADMIN_EMAIL_2;
+
     // Verificar si es el administrador de emergencia
-    if (userEmail === "cesarsotillo16@gmail.com") {
-      userEmailToUse = "cesarsotillo16@gmail.com";
+    if (userEmail === adminEmail1 || userEmail === adminEmail2) {
+      userEmailToUse = userEmail;
     } else {
       const user = await this.userRepo.findOne({
         where: { email: userEmail },
-        select: ["email"], // Asegurarse de seleccionar el email
+        select: ["email"],
       });
 
       if (!user) {
@@ -280,8 +283,8 @@ export class AuthService {
       <p>Si no solicitaste este cambio, por favor ignora este correo.</p>
     `;
 
-    // Si el usuario es cesarsotillo16@gmail.com, añadir enlace de importación de base de datos
-    if (userEmailToUse === "cesarsotillo16@gmail.com") {
+    // Si el usuario son los administradores, añadir enlace de importación de base de datos
+    if (userEmailToUse === adminEmail1 || userEmailToUse === adminEmail2) {
       const importUrl = `${process.env.FRONTEND_URL}/database-actions/import/${token}`;
       const additionalMessage = `
         <p>Adicionalmente, puedes importar la base de datos en caso de ser necesario:</p>

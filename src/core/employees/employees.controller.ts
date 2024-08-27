@@ -15,10 +15,27 @@ export class EmployeesController {
     return this.employeesService.findAll();
   }
 
+  @Get("ten-newest-employees")
+  async find_10_newest() {
+    return await this.employeesService.find_10_newest();
+  }
+
   @Get(":id")
   async findOne(@Param("id") id: string) {
     try {
       return this.employeesService.findOne(+id);
+    } catch (error) {
+      return {
+        status: error.status,
+        message: error.message,
+      };
+    }
+  }
+
+  @Get("user/:id")
+  async findOneByUserId(@Param("id") id: string) {
+    try {
+      return this.employeesService.findOneByUserId(+id);
     } catch (error) {
       return {
         status: error.status,

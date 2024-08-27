@@ -26,8 +26,6 @@ export class NotificationsService {
   async create(createNotificationDto: CreateNotificationDto): Promise<Notification> {
     const { title, message, employeeId, patientId } = createNotificationDto;
 
-    console.log(createNotificationDto);
-
     // Verificar que el employeeId no sea nulo
     if (!employeeId) {
       throw new BadRequestException("Employee ID is required to create a notification");
@@ -103,7 +101,7 @@ export class NotificationsService {
 
     // Obtén los pacientes junto con sus usuarios
     const patients = await this.patientRepository.find({
-      relations: ["user"], // Asegúrate de que la relación 'user' esté incluida
+      relations: ["user"],
     });
 
     // Crea una lista para almacenar los resultados
@@ -115,7 +113,7 @@ export class NotificationsService {
       result.push({
         patient,
         user: patient.user,
-        panicCount: Math.floor(count / 2), // Divide el conteo por 2
+        panicCount: Math.floor(count / 2),
       });
     }
     return result;

@@ -70,11 +70,38 @@ export class EmployeesService {
     });
   }
 
+  async find_10_newest() {
+    return await this.employeeRepository.find({
+      where: {
+        user: {
+          deletedAt: null,
+        },
+      },
+      relations: ["user"],
+      order: {
+        user: {
+          createdAt: "DESC",
+        },
+      },
+      take: 10,
+    });
+  }
+
   async findOne(id: number) {
     const found = await this.employeeRepository.findOne({ where: { id }, relations: ["user"] });
 
     if (!found) {
       throw new NotFoundException(`Empleado con el ID ${id} no fue encontrado`);
+    }
+
+    return found;
+  }
+
+  async findOneByUserId(idUser: number) {
+    const found = await this.employeeRepository.findOne({ where: { user: { id: idUser } }, relations: ["user"] });
+
+    if (!found) {
+      throw new NotFoundException(`Empleado con el ID ${idUser} no fue encontrado`);
     }
 
     return found;

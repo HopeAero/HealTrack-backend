@@ -145,6 +145,23 @@ export class PatientsService {
     });
   }
 
+  async find_10_newest() {
+    return await this.patientRepository.find({
+      where: {
+        user: {
+          deletedAt: null,
+        },
+      },
+      relations: ["user"],
+      order: {
+        user: {
+          createdAt: "DESC",
+        },
+      },
+      take: 10,
+    });
+  }
+
   async findOne(id: number) {
     const found = await this.patientRepository.findOne({ where: { id: Equal(id) }, relations: ["medic", "user"] });
 
@@ -155,6 +172,19 @@ export class PatientsService {
     const patientReports = await this.reportService.findByUser(found.user.id);
 
     return { ...found, patientReports };
+  }
+
+  async findOneByUserId(idUser: number) {
+    const found = await this.patientRepository.findOne({
+      where: { user: { id: idUser } },
+      relations: ["user"],
+    });
+
+    if (!found) {
+      throw new NotFoundException(`Paciente con el ID ${idUser} no fue encontrado`);
+    }
+
+    return found;
   }
 
   async findByEmployee(employeeId: number, status?: StatusPatient) {

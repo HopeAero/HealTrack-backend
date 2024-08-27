@@ -33,9 +33,19 @@ export class PatientsController {
     return await this.patientsService.findAll();
   }
 
+  @Get("ten-newest-patients")
+  async find_10_newest() {
+    return await this.patientsService.find_10_newest();
+  }
+
   @Get(":id")
   async findOne(@Param("id") id: string) {
     return await this.patientsService.findOne(+id);
+  }
+
+  @Get("user/:id")
+  async findOneByUserId(@Param("id") id: string) {
+    return await this.patientsService.findOneByUserId(+id);
   }
 
   @Get("employee/:id")
