@@ -1,8 +1,6 @@
 import { MailerModule } from "@nestjs-modules/mailer";
 import { Module } from "@nestjs/common";
 import { ConfigModule, ConfigService } from "@nestjs/config";
-import { HandlebarsAdapter } from "@nestjs-modules/mailer/dist/adapters/handlebars.adapter";
-import * as path from "path";
 
 @Module({
   imports: [
@@ -20,13 +18,6 @@ import * as path from "path";
         },
         defaults: {
           from: `"HealTrack" <${configService.get("MAIL_FROM")}>`,
-        },
-        template: {
-          dir: path.join(__dirname, "templates"),
-          adapter: new HandlebarsAdapter(), // or new PugAdapter() or new EjsAdapter()
-          options: {
-            strict: true,
-          },
         },
       }),
       inject: [ConfigService],
