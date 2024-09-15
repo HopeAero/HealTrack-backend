@@ -1,30 +1,34 @@
 import { registerAs } from "@nestjs/config";
-import { config as dotenvConfig } from 'dotenv';
+import { config as dotenvConfig } from "dotenv";
 import { DataSource, DataSourceOptions } from "typeorm";
 
-dotenvConfig({ path: '.env' });
+dotenvConfig({ path: ".env" });
 
 const config = {
-    type: 'postgres',
-    host: `${process.env.DATABASE_HOST}`,
-    port: `${process.env.DATABASE_PORT}`,
-    username: `${process.env.DATABASE_USERNAME}`,
-    password: `${process.env.DATABASE_PASSWORD}`,
-    database: `${process.env.DATABASE_NAME}`,
-    entities: ["dist/**/*.entity{.ts,.js}"],
-    migrations: ["dist/migrations/*{.ts,.js}"],
-    migrationsRun: true,
-    autoLoadEntities: true,
-    synchronize: true,
-}
+  type: "postgres",
+  host: `${process.env.DATABASE_HOST}`,
+  port: `${process.env.DATABASE_PORT}`,
+  username: `${process.env.DATABASE_USERNAME}`,
+  password: `${process.env.DATABASE_PASSWORD}`,
+  database: `${process.env.DATABASE_NAME}`,
+  entities: ["dist/**/*.entity{.ts,.js}"],
+  migrations: ["dist/migrations/*{.ts,.js}"],
+  migrationsRun: true,
+  autoLoadEntities: true,
+  synchronize: true,
+};
 
 export const envData = {
-    DATABASE_HOST: process.env.DATABASE_HOST,
-    DATABASE_PORT: process.env.DATABASE_PORT,
-    DATABASE_USERNAME: process.env.DATABASE_USERNAME,
-    DATABASE_PASSWORD: process.env.DATABASE_PASSWORD,
-    DATABASE_NAME: process.env.DATABASE_NAME,
-}
+  DATABASE_HOST: process.env.DATABASE_HOST,
+  DATABASE_URL: process.env.DATABASE_URL,
+  DATABASE_PORT: process.env.DATABASE_PORT,
+  DATABASE_USERNAME: process.env.DATABASE_USERNAME,
+  DATABASE_PASSWORD: process.env.DATABASE_PASSWORD,
+  DATABASE_NAME: process.env.DATABASE_NAME,
+  SECRET: process.env.SECRET,
+  ONESIGNAL_API_KEY: process.env.ONESIGNAL_API_KEY,
+  ONESIGNAL_APP_ID: process.env.ONESIGNAL_APP_ID,
+};
 
-export default registerAs('typeorm', () => config)
+export default registerAs("typeorm", () => config);
 export const connectionSource = new DataSource(config as DataSourceOptions);

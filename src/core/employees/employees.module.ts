@@ -1,24 +1,17 @@
-import { Module } from '@nestjs/common';
-import { EmployeesService } from './service/employees.service';
-import { EmployeesController } from './employees.controller';
-import { Employee } from './entities/employee.entity';
-import { DbValidatorsModule } from '@youba/nestjs-dbvalidator';
-import { envData } from 'src/config/typeorm';
-import { TypeOrmModule } from '@nestjs/typeorm';
+import { Module } from "@nestjs/common";
+import { TypeOrmModule } from "@nestjs/typeorm";
+import { EmployeesService } from "./service/employees.service";
+import { EmployeesController } from "./employees.controller";
+import { Employee } from "./entities/employee.entity";
+import { HospitalsModule } from "./hospital.module"; // Ajusta la ruta según tu estructura de carpetas
+import { User } from "../users/entities/user.entity";
+import { UsersModule } from "../users/users.module";
+import { NotificationsModule } from "../notifications/notifications.module";
 
 @Module({
-  imports: [
-    DbValidatorsModule.register({
-      type: 'postgres',
-      host: envData.DATABASE_HOST,
-      port: parseInt(envData.DATABASE_PORT),
-      username: envData.DATABASE_USERNAME,
-      password: envData.DATABASE_PASSWORD,
-      database: envData.DATABASE_NAME,
-    }),
-    TypeOrmModule.forFeature([Employee]),
-  ],
+  imports: [UsersModule, HospitalsModule, NotificationsModule, TypeOrmModule.forFeature([Employee])],
   controllers: [EmployeesController],
   providers: [EmployeesService],
+  exports: [EmployeesService],
 })
 export class EmployeesModule {}

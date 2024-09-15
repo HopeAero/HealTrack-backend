@@ -1,50 +1,36 @@
-import { ApiProperty } from '@nestjs/swagger';
-import { EmployeeRole } from '../../../constants/index';
+import { ApiProperty } from "@nestjs/swagger";
 
-import {
-  Column,
-  DeleteDateColumn,
-  Entity,
-  PrimaryGeneratedColumn,
-} from 'typeorm';
+import { Column, DeleteDateColumn, Entity, JoinColumn, OneToMany, OneToOne, PrimaryGeneratedColumn } from "typeorm";
+import { Hospital } from "./hospital.entity";
+import { Patient } from "@src/core/patients/entities/patient.entity";
+import { User } from "@src/core/users/entities/user.entity";
+import { Notification } from "@src/core/notifications/entities/notification.entity";
 
 @Entity()
 export class Employee {
   @ApiProperty()
-  @PrimaryGeneratedColumn('increment')
+  @PrimaryGeneratedColumn("increment")
   id: number;
 
   @ApiProperty()
-  @Column()
-  name: string;
+  @OneToOne(() => User, (user) => user.employee)
+  user: User;
 
-  @ApiProperty()
-  @Column()
-  lastname: string;
-
-  @ApiProperty()
-  @Column({ unique: true })
-  email: string;
-
-  @ApiProperty()
-  @Column({ nullable: false, select: false })
-  identification: string;
-
-  @Column({ nullable: false, select: false })
-  password: string;
-
-  @ApiProperty({ example: true })
-  @Column('bool', { default: false })
-  isVerify: boolean;
-
-  @ApiProperty({ enum: EmployeeRole })
-  @Column({
-    type: 'enum',
-    enum: EmployeeRole,
-  })
-  role: EmployeeRole;
+  @ApiProperty({ type: () => Hospital })
+  @Column("jsonb", { nullable: false, default: {} })
+  hospital: Hospital;
 
   @ApiProperty()
   @DeleteDateColumn()
   deletedAt: Date;
+
+  @OneToMany(() => Patient, (patient) => patient.medic)
+  patients: Patient[];
+
+  @OneToMany(() => Patient, (patient) => patient.asistant)
+  asistants: Patient[];
+
+  @ApiProperty({ type: () => Notification })
+  @OneToMany(() => Notification, (notification) => notification.employee)
+  notifications: Notification[];
 }
