@@ -239,12 +239,11 @@ export class PatientsService {
           throw new NotFoundException("No se encontro el medico con el id proporcionado");
         }
 
-        return await this.patientRepository.update(id, { ...dataObj, medic: employee });
+        await this.patientRepository.update(id, { ...dataObj, medic: employee });
       }
 
-      await this.patientRepository.update(id, dataObj);
-
-      if (updatePatientDto.user) {
+      // Actualizar los datos del usuario si es necesario
+      if (user) {
         await this.userService.update(patient.user.id, user);
       }
 
