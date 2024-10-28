@@ -23,6 +23,7 @@ import { RecommendationsModule } from "./core/recommendations/recommendations.mo
 import { MessageNotificationsModule } from "./core/messageNotifications/messageNotifications.module";
 import { SurgeriesModule } from "./core/surgeries/surgeries.module";
 import { DatabaseActionsModule } from "./core/databaseActions/databaseActions.module";
+import { AppFormularyModule } from "./core/appForm/appForms.module";
 
 @Module({
   imports: [
@@ -54,6 +55,7 @@ import { DatabaseActionsModule } from "./core/databaseActions/databaseActions.mo
     MessageNotificationsModule,
     SurgeriesModule,
     DatabaseActionsModule,
+    AppFormularyModule,
   ],
   controllers: [AppController],
   providers: [AppService],

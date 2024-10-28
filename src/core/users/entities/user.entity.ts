@@ -6,6 +6,7 @@ import { MessageNotification } from "@src/core/messageNotifications/entities/mes
 import { Message } from "@src/core/messagges/entities/messagge.entity";
 import { Patient } from "@src/core/patients/entities/patient.entity";
 import { ReportMedic } from "@src/core/reports/entities/report.entity";
+import { AppFormulary } from "@src/core/appForm/entities/appForms.entity";
 import {
   Column,
   CreateDateColumn,
@@ -75,6 +76,9 @@ export class User {
 
   @OneToMany((type) => ReportMedic, (report: ReportMedic) => report.user)
   report: ReportMedic[];
+
+  @OneToMany((type) => AppFormulary, (appForm: AppFormulary) => appForm.user)
+  appForm: ReportMedic[];
 
   @ApiProperty({ type: () => MessageNotification })
   @OneToMany(() => MessageNotification, (messageNotifications) => messageNotifications.user)
