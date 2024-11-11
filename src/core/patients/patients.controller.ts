@@ -38,6 +38,13 @@ export class PatientsController {
     return await this.patientsService.find_10_newest();
   }
 
+  // Obtener porcentajes de estado de pacientes
+  @Get("status-percentages")
+  async getPatientStatusPercentages() {
+    const percentages = await this.patientsService.getPatientStatusPercentages();
+    return { percentages };
+  }
+
   @Get(":id")
   async findOne(@Param("id") id: string) {
     return await this.patientsService.findOne(+id);

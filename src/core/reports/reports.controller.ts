@@ -109,6 +109,91 @@ export class ReportsController {
     return this.reportsService.hasReported(user.id);
   }
 
+  // Gráfico de síntomas por género
+  @UseGuards(AuthGuard)
+  @Get("symptoms-by-gender")
+  async getSymptomsByGender(@Res() res: Response) {
+    try {
+      const data = await this.reportsService.getSymptomsByGender();
+      return res.status(200).json(data);
+    } catch (error) {
+      return res.status(error.status || 500).json({ message: error.message });
+    }
+  }
+
+  // Gráfico de síntomas por grupo de edad
+  @UseGuards(AuthGuard)
+  @Get("symptoms-by-age-group")
+  async getSymptomsByAgeGroup(@Res() res: Response) {
+    try {
+      const data = await this.reportsService.getSymptomsByAgeGroup();
+      return res.status(200).json(data);
+    } catch (error) {
+      return res.status(error.status || 500).json({ message: error.message });
+    }
+  }
+
+  // Gráfico de síntomas por tipo de cirugía
+  @UseGuards(AuthGuard)
+  @Get("symptoms-by-surgery-type")
+  async getSymptomsBySurgeryType(@Res() res: Response) {
+    try {
+      const data = await this.reportsService.getSymptomsBySurgeryType();
+      return res.status(200).json(data);
+    } catch (error) {
+      return res.status(error.status || 500).json({ message: error.message });
+    }
+  }
+
+  // Sintoma mas común entre todos los pacientes:
+  @UseGuards(AuthGuard)
+  @Get("most-common-symptom")
+  async getMostCommonSymptom(@Res() res: Response) {
+    try {
+      const data = await this.reportsService.getMostCommonSymptom();
+      return res.status(200).json(data);
+    } catch (error) {
+      return res.status(error.status || 500).json({ message: error.message });
+    }
+  }
+
+  // Sintoma menos común entre todos los pacientes:
+  @UseGuards(AuthGuard)
+  @Get("least-common-symptom")
+  async getLeastCommonSymptom(@Res() res: Response) {
+    try {
+      const data = await this.reportsService.getLeastCommonSymptom();
+      return res.status(200).json(data);
+    } catch (error) {
+      return res.status(error.status || 500).json({ message: error.message });
+    }
+  }
+
+  // Porcentaje de cada síntoma entre todos los pacientes
+  @UseGuards(AuthGuard)
+  @Get("symptom-percentages")
+  async getSymptomPercentages(@Res() res: Response) {
+    try {
+      const data = await this.reportsService.getSymptomPercentages();
+      return res.status(200).json(data);
+    } catch (error) {
+      return res.status(error.status || 500).json({ message: error.message });
+    }
+  }
+
+  // Síntomas con edades de los pacientes
+  @UseGuards(AuthGuard)
+  @Get("symptoms-with-ages")
+  async getSymptomsWithAges(@Res() res: Response) {
+    try {
+      const data = await this.reportsService.getSymptomsWithAges();
+      return res.status(200).json(data);
+    } catch (error) {
+      return res.status(error.status || 500).json({ message: error.message });
+    }
+  }
+
+  // Encontrar un reporte
   @UseGuards(AuthGuard)
   @Get(":id")
   async findOne(@Param("id") id: string) {

@@ -342,11 +342,11 @@ export class ReportsService {
       where: { id: userId },
       relations: ["patient"],
     });
-  
+
     if (!user || !user.patient) {
       return null; // Retorna null si no se encuentra el paciente
     }
-  
+
     const patient = user.patient;
     return {
       email: user.email,
@@ -357,21 +357,21 @@ export class ReportsService {
       homePhone: patient.homePhone,
       hospital: patient.hospital.name, // Suponiendo que `hospital` es un objeto con un campo `name`
     };
-  }  
+  }
 
   // Función existente para exportar los reportes a Excel
   async exportReportsToExcel() {
     const reports = await this.reportRepository.find({
       relations: ["user"],
     });
-  
+
     if (reports.length === 0) {
       throw new NotFoundException("No reports found");
     }
-  
+
     const workbook = new ExcelJS.Workbook();
     const worksheet = workbook.addWorksheet("Reports");
-  
+
     // Añadir cabeceras
     worksheet.columns = [
       { header: "Fecha", key: "fecha", width: 15 },
@@ -392,14 +392,14 @@ export class ReportsService {
       { header: "Teléfono de casa", key: "telefonoCasa", width: 20 },
       { header: "Hospital", key: "hospital", width: 30 },
     ];
-  
+
     // Añadir los datos de los reportes
     for (const report of reports) {
       const patientInfo = await this.getPatientInformationById(report.user.id);
       const surgeryProcedure = await this.getSurgeryProcedureByUserId(report.user.id);
 
-      console.log(patientInfo)
-  
+      console.log(patientInfo);
+
       worksheet.addRow({
         fecha: dayjs(report.createdAt).format("DD/MM/YYYY"),
         paciente: report.user.name + " " + report.user.lastname,
@@ -425,5 +425,314 @@ export class ReportsService {
     const uint8Array = await workbook.xlsx.writeBuffer();
     const buffer = Buffer.from(uint8Array);
     return buffer;
+  }
+
+  // Síntomas por sexo
+  async getSymptomsByGender(): Promise<any> {
+    const reports = await this.reportRepository
+      .createQueryBuilder("report")
+      .select([
+        "patient.sex",
+        "SUM(CASE WHEN report.hasHighTemperature = true THEN 1 ELSE 0 END) AS hightemperature",
+        "SUM(CASE WHEN report.hasRedness = true THEN 1 ELSE 0 END) AS redness",
+        "SUM(CASE WHEN report.hasSwelling = true THEN 1 ELSE 0 END) AS swelling",
+        "SUM(CASE WHEN report.hasSecretions = true THEN 1 ELSE 0 END) AS secretions",
+      ])
+      .innerJoin("report.user", "user")
+      .innerJoin("user.patient", "patient")
+      .groupBy("patient.sex")
+      .getRawMany();
+
+    // Calcula los porcentajes para cada género
+    return reports.map((report) => {
+      // Suma total de síntomas para el género actual
+      const totalSymptoms =
+        Number(report.hightemperature) + Number(report.redness) + Number(report.swelling) + Number(report.secretions);
+
+      return {
+        sex: report.patient_sex,
+        symptoms: {
+          highTemperature: {
+            count: Number(report.hightemperature) || 0,
+            percentage: totalSymptoms > 0 ? (Number(report.hightemperature) / totalSymptoms) * 100 : 0,
+          },
+          redness: {
+            count: Number(report.redness) || 0,
+            percentage: totalSymptoms > 0 ? (Number(report.redness) / totalSymptoms) * 100 : 0,
+          },
+          swelling: {
+            count: Number(report.swelling) || 0,
+            percentage: totalSymptoms > 0 ? (Number(report.swelling) / totalSymptoms) * 100 : 0,
+          },
+          secretions: {
+            count: Number(report.secretions) || 0,
+            percentage: totalSymptoms > 0 ? (Number(report.secretions) / totalSymptoms) * 100 : 0,
+          },
+        },
+      };
+    });
+  }
+
+  // Sintomas por edad
+  async getSymptomsByAgeGroup(): Promise<any> {
+    const ageGroups = [
+      { min: 0, max: 18 },
+      { min: 19, max: 35 },
+      { min: 36, max: 50 },
+      { min: 51, max: 65 },
+      { min: 66, max: 100 },
+    ];
+
+    const data = [];
+
+    for (const { min, max } of ageGroups) {
+      const reports = await this.reportRepository
+        .createQueryBuilder("report")
+        .innerJoinAndSelect("report.user", "user")
+        .innerJoinAndSelect("user.patient", "patient")
+        .where("patient.age BETWEEN :min AND :max", { min, max })
+        .select([
+          "SUM(CASE WHEN report.hasHighTemperature = true THEN 1 ELSE 0 END) AS hightemperature",
+          "SUM(CASE WHEN report.hasRedness = true THEN 1 ELSE 0 END) AS redness",
+          "SUM(CASE WHEN report.hasSwelling = true THEN 1 ELSE 0 END) AS swelling",
+          "SUM(CASE WHEN report.hasSecretions = true THEN 1 ELSE 0 END) AS secretions",
+        ])
+        .getRawOne();
+
+      // Suma total de síntomas
+      const totalSymptoms = [reports.hightemperature, reports.redness, reports.swelling, reports.secretions].reduce(
+        (sum, count) => sum + parseInt(count, 10) || 0,
+        0,
+      ); // Sumar todos los síntomas
+
+      data.push({
+        ageRange: `${min}-${max}`,
+        symptoms: {
+          highTemperature: {
+            count: parseInt(reports.hightemperature, 10) || 0,
+            percentage: totalSymptoms > 0 ? (parseInt(reports.hightemperature, 10) / totalSymptoms) * 100 : 0,
+          },
+          redness: {
+            count: parseInt(reports.redness, 10) || 0,
+            percentage: totalSymptoms > 0 ? (parseInt(reports.redness, 10) / totalSymptoms) * 100 : 0,
+          },
+          swelling: {
+            count: parseInt(reports.swelling, 10) || 0,
+            percentage: totalSymptoms > 0 ? (parseInt(reports.swelling, 10) / totalSymptoms) * 100 : 0,
+          },
+          secretions: {
+            count: parseInt(reports.secretions, 10) || 0,
+            percentage: totalSymptoms > 0 ? (parseInt(reports.secretions, 10) / totalSymptoms) * 100 : 0,
+          },
+        },
+      });
+    }
+
+    return data;
+  }
+
+  // Síntomas por cirugía
+  async getSymptomsBySurgeryType(): Promise<any> {
+    const reports = await this.reportRepository
+      .createQueryBuilder("report")
+      .innerJoinAndSelect("report.user", "user")
+      .innerJoinAndSelect("user.patient", "patient")
+      .select([
+        "patient.surgeryProcedure",
+        "SUM(CASE WHEN report.hasHighTemperature = true THEN 1 ELSE 0 END) AS hightemperature",
+        "SUM(CASE WHEN report.hasRedness = true THEN 1 ELSE 0 END) AS redness",
+        "SUM(CASE WHEN report.hasSwelling = true THEN 1 ELSE 0 END) AS swelling",
+        "SUM(CASE WHEN report.hasSecretions = true THEN 1 ELSE 0 END) AS secretions",
+      ])
+      .groupBy("patient.surgeryProcedure")
+      .getRawMany();
+
+    return reports.map((report) => {
+      const totalSymptoms =
+        Number(report.hightemperature) + Number(report.redness) + Number(report.swelling) + Number(report.secretions);
+
+      return {
+        surgeryType: report.patient_surgeryProcedure,
+        symptoms: {
+          highTemperature: {
+            count: Number(report.hightemperature) || 0,
+            percentage: totalSymptoms > 0 ? (Number(report.hightemperature) / totalSymptoms) * 100 : 0,
+          },
+          redness: {
+            count: Number(report.redness) || 0,
+            percentage: totalSymptoms > 0 ? (Number(report.redness) / totalSymptoms) * 100 : 0,
+          },
+          swelling: {
+            count: Number(report.swelling) || 0,
+            percentage: totalSymptoms > 0 ? (Number(report.swelling) / totalSymptoms) * 100 : 0,
+          },
+          secretions: {
+            count: Number(report.secretions) || 0,
+            percentage: totalSymptoms > 0 ? (Number(report.secretions) / totalSymptoms) * 100 : 0,
+          },
+        },
+      };
+    });
+  }
+
+  // Sintoma mas común entre todos los pacientes:
+  async getMostCommonSymptom() {
+    const result = await this.reportRepository
+      .createQueryBuilder("report")
+      .select([
+        "SUM(CASE WHEN report.hasHighTemperature = true THEN 1 ELSE 0 END) AS hightemperature",
+        "SUM(CASE WHEN report.hasRedness = true THEN 1 ELSE 0 END) AS redness",
+        "SUM(CASE WHEN report.hasSwelling = true THEN 1 ELSE 0 END) AS swelling",
+        "SUM(CASE WHEN report.hasSecretions = true THEN 1 ELSE 0 END) AS secretions",
+      ])
+      .getRawOne();
+
+    // Convertimos los resultados en un array para encontrar el síntoma con el conteo más alto
+    const symptoms = [
+      { name: "Temperatura mayor a 38°C", count: parseInt(result.hightemperature, 10) },
+      { name: "Enrojecimiento", count: parseInt(result.redness, 10) },
+      { name: "Hinchazón", count: parseInt(result.swelling, 10) },
+      { name: "Secreciones", count: parseInt(result.secretions, 10) },
+    ];
+
+    // Calcula el total de ocurrencias de todos los síntomas
+    const totalOccurrences = symptoms.reduce((sum, symptom) => sum + symptom.count, 0);
+
+    // Encuentra el síntoma con la mayor cantidad de ocurrencias
+    const mostCommonSymptom = symptoms.reduce((prev, current) => (prev.count > current.count ? prev : current));
+
+    // Calcula el porcentaje del síntoma más común con respecto al total
+    const percentage = totalOccurrences > 0 ? (mostCommonSymptom.count / totalOccurrences) * 100 : 0;
+
+    // Retorna el síntoma más común, la cantidad de ocurrencias y el porcentaje
+    return {
+      symptom: mostCommonSymptom.name,
+      count: mostCommonSymptom.count,
+      percentage: parseFloat(percentage.toFixed(2)), // Limita el porcentaje a 2 decimales
+    };
+  }
+
+  // Sintoma menos común entre todos los pacientes:
+  async getLeastCommonSymptom() {
+    const result = await this.reportRepository
+      .createQueryBuilder("report")
+      .select([
+        "SUM(CASE WHEN report.hasHighTemperature = true THEN 1 ELSE 0 END) AS hightemperature",
+        "SUM(CASE WHEN report.hasRedness = true THEN 1 ELSE 0 END) AS redness",
+        "SUM(CASE WHEN report.hasSwelling = true THEN 1 ELSE 0 END) AS swelling",
+        "SUM(CASE WHEN report.hasSecretions = true THEN 1 ELSE 0 END) AS secretions",
+      ])
+      .getRawOne();
+
+    // Convertimos los resultados en un array para encontrar el síntoma con el conteo más bajo
+    const symptoms = [
+      { name: "Temperatura mayor a 38°C", count: parseInt(result.hightemperature, 10) },
+      { name: "Enrojecimiento", count: parseInt(result.redness, 10) },
+      { name: "Hinchazón", count: parseInt(result.swelling, 10) },
+      { name: "Secreciones", count: parseInt(result.secretions, 10) },
+    ];
+
+    // Calcula el total de ocurrencias de todos los síntomas
+    const totalOccurrences = symptoms.reduce((sum, symptom) => sum + symptom.count, 0);
+
+    // Encuentra el síntoma con la menor cantidad de ocurrencias
+    const leastCommonSymptom = symptoms.reduce((prev, current) => (prev.count < current.count ? prev : current));
+
+    // Calcula el porcentaje del síntoma menos común con respecto al total
+    const percentage = totalOccurrences > 0 ? (leastCommonSymptom.count / totalOccurrences) * 100 : 0;
+
+    // Retorna el síntoma más común, la cantidad de ocurrencias y el porcentaje
+    return {
+      symptom: leastCommonSymptom.name,
+      count: leastCommonSymptom.count,
+      percentage: parseFloat(percentage.toFixed(2)), // Limita el porcentaje a 2 decimales
+    };
+  }
+
+  // Porcentaje y ocurrencias de cada síntoma entre todos los pacientes
+  async getSymptomPercentages() {
+    // Total de reportes
+    const totalReports = await this.reportRepository.count();
+
+    const result = await this.reportRepository
+      .createQueryBuilder("report")
+      .select([
+        "SUM(CASE WHEN report.hasHighTemperature = true THEN 1 ELSE 0 END) AS hightemperature",
+        "SUM(CASE WHEN report.hasRedness = true THEN 1 ELSE 0 END) AS redness",
+        "SUM(CASE WHEN report.hasSwelling = true THEN 1 ELSE 0 END) AS swelling",
+        "SUM(CASE WHEN report.hasSecretions = true THEN 1 ELSE 0 END) AS secretions",
+      ])
+      .getRawOne();
+
+    // Calcula el porcentaje y el número de ocurrencias de cada síntoma
+    const symptoms = [
+      {
+        name: "Temperatura mayor a 38°C",
+        count: parseInt(result.hightemperature, 10),
+        percentage: parseFloat(((parseInt(result.hightemperature, 10) / totalReports) * 100).toFixed(2)),
+      },
+      {
+        name: "Enrojecimiento",
+        count: parseInt(result.redness, 10),
+        percentage: parseFloat(((parseInt(result.redness, 10) / totalReports) * 100).toFixed(2)),
+      },
+      {
+        name: "Hinchazón",
+        count: parseInt(result.swelling, 10),
+        percentage: parseFloat(((parseInt(result.swelling, 10) / totalReports) * 100).toFixed(2)),
+      },
+      {
+        name: "Secreciones",
+        count: parseInt(result.secretions, 10),
+        percentage: parseFloat(((parseInt(result.secretions, 10) / totalReports) * 100).toFixed(2)),
+      },
+    ];
+
+    return symptoms;
+  }
+
+  // Síntomas con edades de los pacientes
+  async getSymptomsWithAges(): Promise<any[]> {
+    const result = await this.reportRepository
+      .createQueryBuilder("report")
+      .innerJoinAndSelect("report.user", "user")
+      .innerJoinAndSelect("user.patient", "patient")
+      .select([
+        "patient.age",
+        "SUM(CASE WHEN report.hasHighTemperature = true THEN 1 ELSE 0 END) AS hightemperature",
+        "SUM(CASE WHEN report.hasRedness = true THEN 1 ELSE 0 END) AS redness",
+        "SUM(CASE WHEN report.hasSwelling = true THEN 1 ELSE 0 END) AS swelling",
+        "SUM(CASE WHEN report.hasSecretions = true THEN 1 ELSE 0 END) AS secretions",
+      ])
+      .groupBy("patient.age")
+      .getRawMany();
+
+    // Reorganiza los datos para mostrar los síntomas agrupados por edades con porcentaje incluido
+    return result.map((report) => {
+      const totalSymptoms =
+        Number(report.hightemperature) + Number(report.redness) + Number(report.swelling) + Number(report.secretions);
+
+      return {
+        age: report.patient_age,
+        symptoms: {
+          highTemperature: {
+            count: Number(report.hightemperature) || 0,
+            percentage: totalSymptoms > 0 ? (Number(report.hightemperature) / totalSymptoms) * 100 : 0,
+          },
+          redness: {
+            count: Number(report.redness) || 0,
+            percentage: totalSymptoms > 0 ? (Number(report.redness) / totalSymptoms) * 100 : 0,
+          },
+          swelling: {
+            count: Number(report.swelling) || 0,
+            percentage: totalSymptoms > 0 ? (Number(report.swelling) / totalSymptoms) * 100 : 0,
+          },
+          secretions: {
+            count: Number(report.secretions) || 0,
+            percentage: totalSymptoms > 0 ? (Number(report.secretions) / totalSymptoms) * 100 : 0,
+          },
+        },
+      };
+    });
   }
 }

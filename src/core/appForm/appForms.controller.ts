@@ -52,6 +52,48 @@ export class AppFormularyController {
     }
   }
 
+  @Get("export")
+  async exportFormsToExcel(@Res() res: Response) {
+    try {
+      const buffer = await this.appFormularyService.exportFormsToExcel();
+      res.setHeader("Content-Disposition", "attachment; filename=app_formularies.xlsx");
+      res.setHeader("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+      res.send(buffer);
+    } catch (error) {
+      return res.status(error.status || 500).json({ message: error.message });
+    }
+  }
+
+  @Get("questions/highest-rated")
+  async getHighestRatedQuestions(@Res() res: Response) {
+    try {
+      const highestRatedQuestions = await this.appFormularyService.getHighestRatedQuestions();
+      return res.status(200).json({ highestRatedQuestions });
+    } catch (error) {
+      return res.status(error.status || 500).json({ message: error.message });
+    }
+  }
+
+  @Get("questions/lowest-rated")
+  async getLowestRatedQuestions(@Res() res: Response) {
+    try {
+      const lowestRatedQuestions = await this.appFormularyService.getLowestRatedQuestions();
+      return res.status(200).json(lowestRatedQuestions);
+    } catch (error) {
+      return res.status(error.status || 500).json({ message: error.message });
+    }
+  }
+
+  @Get("questions/acceptance")
+  async getAcceptancePercentages(@Res() res: Response) {
+    try {
+      const acceptancePercentages = await this.appFormularyService.getAcceptancePercentages();
+      return res.status(200).json(acceptancePercentages);
+    } catch (error) {
+      return res.status(error.status || 500).json({ message: error.message });
+    }
+  }
+
   @Get(":id")
   async findOne(@Param("id") id: string, @Res() res: Response) {
     try {

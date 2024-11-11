@@ -14,6 +14,7 @@ import { User } from "@src/core/users/entities/user.entity";
 import { Hospital } from "@src/core/employees/entities/hospital.entity";
 import { NotificationsService } from "@src/core/notifications/service/notifications.service";
 import { MailerService } from "@nestjs-modules/mailer";
+import * as dayjs from "dayjs";
 
 @Injectable()
 export class PatientsService {
@@ -420,5 +421,47 @@ export class PatientsService {
         html: mail_html,
       });
     }
+  }
+
+  async getPatientStatusPercentages() {
+    const threeMonthsAgo = dayjs().subtract(3, "months");
+    const patients = await this.findAll();
+
+    const recentPatients = patients.filter((patient) => dayjs(patient.user.createdAt).isAfter(threeMonthsAgo));
+
+    const totalRecentPatients = recentPatients.length;
+
+    const statusCounts = {
+      [StatusPatient.ACTIVE]: 0,
+      [StatusPatient.INACTIVE]: 0,
+      [StatusPatient.EMERGENCY]: 0,
+      [StatusPatient.CLOSED]: 0,
+    };
+
+    for (const patient of recentPatients) {
+      if (statusCounts.hasOwnProperty(patient.status)) {
+        statusCounts[patient.status]++;
+      }
+    }
+
+    const statusNameMap = {
+      [StatusPatient.ACTIVE]: "En seguimiento",
+      [StatusPatient.INACTIVE]: "Dado de Alta",
+      [StatusPatient.EMERGENCY]: "Hospitalizado",
+      [StatusPatient.CLOSED]: "Caso cerrado",
+    };
+
+    const percentages = Object.keys(statusCounts).map((status) => {
+      const count = statusCounts[status];
+      const percentage = totalRecentPatients > 0 ? (count / totalRecentPatients) * 100 : 0;
+
+      return {
+        name: statusNameMap[status],
+        count: Number.isNaN(count) ? 0 : count,
+        percentage: Number.isNaN(percentage) ? 0 : percentage.toFixed(2),
+      };
+    });
+
+    return { percentages };
   }
 }

@@ -7,6 +7,8 @@ import { UserActiveInterface } from "@src/common/interface/user-active-interface
 import { Patient } from "@src/core/patients/entities/patient.entity";
 import { UsersService } from "@src/core/users/service/users.service";
 import { AllRole } from "@src/constants";
+import * as ExcelJS from "exceljs";
+import * as dayjs from "dayjs";
 
 @Injectable()
 export class AppFormularyService {
@@ -120,8 +122,8 @@ export class AppFormularyService {
       throw new NotFoundException(`AppFormulary with ID ${formId} not found`);
     }
 
-    // Mapa de valores de la escala de Likert normalizados a porcentajes
-    const likertValues = {
+    // Escala de Likert para contexto positivo
+    const likertValuesPositive = {
       "Totalmente en desacuerdo": 0,
       "En desacuerdo": 0.25,
       Neutral: 0.5,
@@ -129,26 +131,36 @@ export class AppFormularyService {
       "Totalmente de acuerdo": 1,
     };
 
-    // Respuestas del formulario
-    const responses = [
-      appFormulary.likeApp,
-      appFormulary.innescesaryDificultToUse,
-      appFormulary.easyToUse,
-      appFormulary.needExpertSupport,
-      appFormulary.wellIntegratedFunctions,
-      appFormulary.manyContradictions,
-      appFormulary.peopleLearnQuickly,
-      appFormulary.tediousToUse,
-      appFormulary.feltConfidentUsing,
-      appFormulary.neededKnowledgeBeforeUse,
+    // Escala de Likert para contexto negativo
+    const likertValuesNegative = {
+      "Totalmente en desacuerdo": 1,
+      "En desacuerdo": 0.75,
+      Neutral: 0.5,
+      "De acuerdo": 0.25,
+      "Totalmente de acuerdo": 0,
+    };
+
+    // Respuestas del formulario y contexto de cada pregunta
+    const responsesWithContext = [
+      { response: appFormulary.likeApp, isPositive: true },
+      { response: appFormulary.innescesaryDificultToUse, isPositive: false },
+      { response: appFormulary.easyToUse, isPositive: true },
+      { response: appFormulary.needExpertSupport, isPositive: false },
+      { response: appFormulary.wellIntegratedFunctions, isPositive: true },
+      { response: appFormulary.manyContradictions, isPositive: false },
+      { response: appFormulary.peopleLearnQuickly, isPositive: true },
+      { response: appFormulary.tediousToUse, isPositive: false },
+      { response: appFormulary.feltConfidentUsing, isPositive: true },
+      { response: appFormulary.neededKnowledgeBeforeUse, isPositive: false },
     ];
 
-    // Sumar los valores correspondientes a cada respuesta
-    const totalScore = responses.reduce((sum, response) => {
-      return sum + (likertValues[response] || 0); // Usamos los valores normalizados
+    // Sumar los valores correspondientes a cada respuesta según su contexto
+    const totalScore = responsesWithContext.reduce((sum, { response, isPositive }) => {
+      const likertValues = isPositive ? likertValuesPositive : likertValuesNegative;
+      return sum + (likertValues[response] || 0);
     }, 0);
 
-    const maxScore = responses.length;
+    const maxScore = responsesWithContext.length;
     const satisfactionPercentage = totalScore / maxScore;
 
     return satisfactionPercentage;
@@ -184,5 +196,262 @@ export class AppFormularyService {
 
     // Retorna true si existe un formulario, false si no
     return existingForm !== null;
+  }
+
+  // Función existente para exportar los reportes a Excel
+  async exportFormsToExcel() {
+    // Obtener todos los formularios con la relación del usuario
+    const forms = await this.appFormularyRepository.find({
+      relations: ["user"],
+    });
+
+    if (forms.length === 0) {
+      throw new NotFoundException("No forms found");
+    }
+
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet("App Formularies");
+
+    // Definir las cabeceras de las columnas
+    worksheet.columns = [
+      { header: "Fecha", key: "fecha", width: 15 },
+      { header: "Paciente", key: "paciente", width: 20 },
+      { header: "¿Le gusta la app?", key: "likeApp", width: 30 },
+      { header: "¿Es innecesariamente difícil de usar?", key: "innescesaryDificultToUse", width: 40 },
+      { header: "¿Es fácil de usar?", key: "easyToUse", width: 30 },
+      { header: "¿Necesita soporte experto?", key: "needExpertSupport", width: 35 },
+      { header: "¿Las funciones están bien integradas?", key: "wellIntegratedFunctions", width: 40 },
+      { header: "¿Tiene muchas contradicciones?", key: "manyContradictions", width: 40 },
+      { header: "¿Las personas aprenden rápidamente a usarla?", key: "peopleLearnQuickly", width: 40 },
+      { header: "¿Es tediosa de usar?", key: "tediousToUse", width: 30 },
+      { header: "¿Se siente seguro al usarla?", key: "feltConfidentUsing", width: 35 },
+      { header: "¿Necesita conocimientos previos?", key: "neededKnowledgeBeforeUse", width: 40 },
+    ];
+
+    // Agregar los datos de los formularios al worksheet
+    for (const form of forms) {
+      worksheet.addRow({
+        fecha: dayjs(form.createdAt).format("DD/MM/YYYY"),
+        paciente: `${form.user.name} ${form.user.lastname}`,
+        likeApp: form.likeApp,
+        innescesaryDificultToUse: form.innescesaryDificultToUse,
+        easyToUse: form.easyToUse,
+        needExpertSupport: form.needExpertSupport,
+        wellIntegratedFunctions: form.wellIntegratedFunctions,
+        manyContradictions: form.manyContradictions,
+        peopleLearnQuickly: form.peopleLearnQuickly,
+        tediousToUse: form.tediousToUse,
+        feltConfidentUsing: form.feltConfidentUsing,
+        neededKnowledgeBeforeUse: form.neededKnowledgeBeforeUse,
+      });
+    }
+
+    // Generar el archivo Excel en un buffer
+    const uint8Array = await workbook.xlsx.writeBuffer();
+    const buffer = Buffer.from(uint8Array);
+    return buffer;
+  }
+
+  // Pregunta con mejor calificación total
+  async getHighestRatedQuestions(): Promise<{ question: string; rating: number }[]> {
+    const appForms = await this.appFormularyRepository.find(); // Obtener todos los formularios
+
+    if (appForms.length === 0) {
+      throw new NotFoundException("No hay formularios disponibles para calcular las preguntas mejor calificadas");
+    }
+
+    const likertScale: { [key: string]: number } = {
+      "Totalmente en desacuerdo": 1,
+      "En desacuerdo": 2,
+      Neutral: 3,
+      "De acuerdo": 4,
+      "Totalmente de acuerdo": 5,
+    };
+
+    const questionRatings: { [key: string]: number } = {
+      likeApp: 0,
+      innescesaryDificultToUse: 0,
+      easyToUse: 0,
+      needExpertSupport: 0,
+      wellIntegratedFunctions: 0,
+      manyContradictions: 0,
+      peopleLearnQuickly: 0,
+      tediousToUse: 0,
+      feltConfidentUsing: 0,
+      neededKnowledgeBeforeUse: 0,
+    };
+
+    const totalResponses = appForms.length;
+
+    // Sumar las calificaciones para cada pregunta
+    appForms.forEach((form) => {
+      for (const question in questionRatings) {
+        questionRatings[question] += likertScale[form[question]] || 0;
+      }
+    });
+
+    // Mapeo de preguntas
+    const questionMapping: { [key: string]: string } = {
+      likeApp: "¿Le gusta la app?",
+      innescesaryDificultToUse: "¿Es innecesariamente difícil de usar?",
+      easyToUse: "¿Es fácil de usar?",
+      needExpertSupport: "¿Necesita soporte experto?",
+      wellIntegratedFunctions: "¿Las funciones están bien integradas?",
+      manyContradictions: "¿Tiene muchas contradicciones?",
+      peopleLearnQuickly: "¿Las personas aprenden rápidamente a usarla?",
+      tediousToUse: "¿Es tediosa de usar?",
+      feltConfidentUsing: "¿Se siente seguro al usarla?",
+      neededKnowledgeBeforeUse: "¿Necesita conocimientos previos?",
+    };
+
+    // Calcular la calificación promedio de cada pregunta y convertir a porcentaje
+    const averageRatings = Object.keys(questionRatings).map((question) => {
+      const averageRating = questionRatings[question] / totalResponses;
+      const percentage = ((averageRating / 5) * 100).toFixed(2); // Convertir a porcentaje y redondear a 2 decimales
+      return {
+        question: questionMapping[question], // Mapeamos la clave al texto de la pregunta
+        rating: parseFloat(percentage), // Almacenar como número
+      };
+    });
+
+    // Encontrar el mayor porcentaje
+    const maxRating = Math.max(...averageRatings.map((q) => q.rating));
+
+    // Filtrar las preguntas que tienen el mayor porcentaje
+    return averageRatings.filter((q) => q.rating === maxRating);
+  }
+
+  // Pregunta con peor calificación
+  async getLowestRatedQuestions(): Promise<{ question: string; rating: number }[]> {
+    const appForms = await this.appFormularyRepository.find(); // Obtener todos los formularios
+
+    if (appForms.length === 0) {
+      throw new NotFoundException("No hay formularios disponibles para calcular las preguntas con peor calificación");
+    }
+
+    const likertScale: { [key: string]: number } = {
+      "Totalmente en desacuerdo": 1,
+      "En desacuerdo": 2,
+      Neutral: 3,
+      "De acuerdo": 4,
+      "Totalmente de acuerdo": 5,
+    };
+
+    const questionRatings: { [key: string]: number } = {
+      likeApp: 0,
+      innescesaryDificultToUse: 0,
+      easyToUse: 0,
+      needExpertSupport: 0,
+      wellIntegratedFunctions: 0,
+      manyContradictions: 0,
+      peopleLearnQuickly: 0,
+      tediousToUse: 0,
+      feltConfidentUsing: 0,
+      neededKnowledgeBeforeUse: 0,
+    };
+
+    const totalResponses = appForms.length;
+
+    // Sumar las calificaciones para cada pregunta
+    appForms.forEach((form) => {
+      for (const question in questionRatings) {
+        questionRatings[question] += likertScale[form[question]] || 0;
+      }
+    });
+
+    // Mapeo de preguntas
+    const questionMapping: { [key: string]: string } = {
+      likeApp: "¿Le gusta la app?",
+      innescesaryDificultToUse: "¿Es innecesariamente difícil de usar?",
+      easyToUse: "¿Es fácil de usar?",
+      needExpertSupport: "¿Necesita soporte experto?",
+      wellIntegratedFunctions: "¿Las funciones están bien integradas?",
+      manyContradictions: "¿Tiene muchas contradicciones?",
+      peopleLearnQuickly: "¿Las personas aprenden rápidamente a usarla?",
+      tediousToUse: "¿Es tediosa de usar?",
+      feltConfidentUsing: "¿Se siente seguro al usarla?",
+      neededKnowledgeBeforeUse: "¿Necesita conocimientos previos?",
+    };
+
+    // Calcular la calificación promedio de cada pregunta y convertir a porcentaje
+    const averageRatings = Object.keys(questionRatings).map((question) => {
+      const averageRating = questionRatings[question] / totalResponses;
+      const percentage = ((averageRating / 5) * 100).toFixed(2); // Convertir a porcentaje y redondear a 2 decimales
+      return {
+        question: questionMapping[question], // Mapeamos la clave al texto de la pregunta
+        rating: parseFloat(percentage), // Almacenar como número
+      };
+    });
+
+    // Encontrar la peor calificación
+    const lowestRating = Math.min(...averageRatings.map((q) => q.rating));
+
+    // Filtrar las preguntas que tienen la peor calificación
+    return averageRatings.filter((q) => q.rating === lowestRating);
+  }
+
+  // Porcentaje de aceptación de cada pregunta
+  async getAcceptancePercentages(): Promise<{ question: string; percentage: number }[]> {
+    const appForms = await this.appFormularyRepository.find(); // Obtener todos los formularios
+
+    if (appForms.length === 0) {
+      throw new NotFoundException("No hay formularios disponibles para calcular los porcentajes de aceptación");
+    }
+
+    const likertScale: { [key: string]: number } = {
+      "Totalmente en desacuerdo": 1,
+      "En desacuerdo": 2,
+      Neutral: 3,
+      "De acuerdo": 4,
+      "Totalmente de acuerdo": 5,
+    };
+
+    const questionRatings: { [key: string]: number } = {
+      likeApp: 0,
+      innescesaryDificultToUse: 0,
+      easyToUse: 0,
+      needExpertSupport: 0,
+      wellIntegratedFunctions: 0,
+      manyContradictions: 0,
+      peopleLearnQuickly: 0,
+      tediousToUse: 0,
+      feltConfidentUsing: 0,
+      neededKnowledgeBeforeUse: 0,
+    };
+
+    const totalResponses = appForms.length;
+
+    // Sumar las calificaciones para cada pregunta
+    appForms.forEach((form) => {
+      for (const question in questionRatings) {
+        questionRatings[question] += likertScale[form[question]] || 0;
+      }
+    });
+
+    // Mapeo de preguntas a sus descripciones
+    const questionMapping: { [key: string]: string } = {
+      likeApp: "¿Le gusta la app?",
+      innescesaryDificultToUse: "¿Es innecesariamente difícil de usar?",
+      easyToUse: "¿Es fácil de usar?",
+      needExpertSupport: "¿Necesita soporte experto?",
+      wellIntegratedFunctions: "¿Las funciones están bien integradas?",
+      manyContradictions: "¿Tiene muchas contradicciones?",
+      peopleLearnQuickly: "¿Pacientes aprenden rápido a usarla?",
+      tediousToUse: "¿Es tediosa de usar?",
+      feltConfidentUsing: "¿Se siente seguro al usarla?",
+      neededKnowledgeBeforeUse: "¿Necesita conocimientos previos?",
+    };
+
+    // Calcular el porcentaje de aceptación de cada pregunta
+    const acceptancePercentages = Object.keys(questionRatings).map((question) => {
+      const averageRating = questionRatings[question] / totalResponses;
+      const percentage = ((averageRating - 1) / 4) * 100; // Calcular el porcentaje respecto a la escala de 1 a 5
+      return {
+        question: questionMapping[question], // Mapeamos la clave al texto de la pregunta
+        percentage: parseFloat(percentage.toFixed(2)), // Limitar a dos decimales
+      };
+    });
+
+    return acceptancePercentages;
   }
 }
