@@ -8,6 +8,8 @@ import { OneSignalModule } from "onesignal-api-client-nest";
 import { TypeOrmModule } from "@nestjs/typeorm";
 import { Patient } from "../patients/entities/patient.entity";
 import { User } from "../users/entities/user.entity";
+import { ExternalModule } from "@src/common/modules/external/external.module";
+import { AuthModule } from "../auth/auth.module";
 
 @Module({
   imports: [
@@ -16,6 +18,7 @@ import { User } from "../users/entities/user.entity";
       appId: envData.ONESIGNAL_APP_ID,
       restApiKey: envData.ONESIGNAL_API_KEY,
     }),
+    ExternalModule,
   ],
   controllers: [NotificationsController],
   providers: [NotificationsService],

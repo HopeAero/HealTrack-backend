@@ -7,7 +7,8 @@ import { CreateNotificationDto } from "../dto/create-notification.dto";
 import { Patient } from "@src/core/patients/entities/patient.entity";
 import { User } from "@src/core/users/entities/user.entity";
 import * as ExcelJS from "exceljs";
-import * as dayjs from "dayjs";
+//Sockets
+import { SocketService } from "@src/common/modules/external/services/socket.service";
 
 @Injectable()
 export class NotificationsService {
@@ -20,34 +21,37 @@ export class NotificationsService {
 
     @InjectRepository(Patient)
     private readonly patientRepository: Repository<Patient>,
+
+    private socketService: SocketService,
   ) {}
 
   // Crear notificación
   async create(createNotificationDto: CreateNotificationDto): Promise<Notification> {
     const { title, message, employeeId, patientId } = createNotificationDto;
 
-    // Verificar que el employeeId no sea nulo
+    // Validar que employeeId no sea nulo
     if (!employeeId) {
       throw new BadRequestException("Employee ID is required to create a notification");
     }
 
+    // Buscar el empleado en el repositorio
     const employee = await this.employeeRepository.findOne({ where: { id: employeeId } });
-
     if (!employee) {
       throw new NotFoundException(`Employee with ID ${employeeId} not found`);
     }
 
-    // Verificar que el employeeId no sea nulo
+    // Validar que patientId no sea nulo
     if (!patientId) {
       throw new BadRequestException("Patient ID is required to create a notification");
     }
 
+    // Buscar el paciente en el repositorio
     const patient = await this.patientRepository.findOne({ where: { id: patientId } });
-
     if (!patient) {
       throw new NotFoundException(`Patient with ID ${patientId} not found`);
     }
 
+    // Crear la notificación con los datos recibidos
     const notification = this.notificationRepository.create({
       title,
       message,
@@ -55,7 +59,31 @@ export class NotificationsService {
       patient,
     });
 
-    return this.notificationRepository.save(notification);
+    // Guardar la notificación en el repositorio
+    await this.notificationRepository.save(notification);
+
+    // Calcular las notificaciones sin leer para todos los usuarios
+    const unreadCounts = await this.calculateUnreadCountsForAllUsers();
+
+    // Emitir la cuenta de notificaciones sin leer globalmente
+    this.socketService.socket.sockets.emit("unread_panic_notifications_count", {
+      event: "unread_panic_notifications_count",
+      data: unreadCounts,
+    });
+
+    return notification;
+  }
+
+  // Calcular notificaciones sin leer para todos los usuarios
+  private async calculateUnreadCountsForAllUsers() {
+    const employees = await this.employeeRepository.find();
+    const unreadCounts = {};
+
+    for (const employee of employees) {
+      unreadCounts[employee.id] = await this.countUnreadNotifications(employee.id);
+    }
+
+    return unreadCounts;
   }
 
   // Obtener todas las notificaciones

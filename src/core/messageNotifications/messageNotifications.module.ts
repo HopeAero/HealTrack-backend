@@ -6,6 +6,8 @@ import { User } from "../users/entities/user.entity";
 import { envData } from "@src/config/typeorm";
 import { OneSignalModule } from "onesignal-api-client-nest";
 import { TypeOrmModule } from "@nestjs/typeorm";
+import { ExternalModule } from "@src/common/modules/external/external.module";
+import { AuthModule } from "../auth/auth.module";
 
 @Module({
   imports: [
@@ -14,6 +16,8 @@ import { TypeOrmModule } from "@nestjs/typeorm";
       appId: envData.ONESIGNAL_APP_ID,
       restApiKey: envData.ONESIGNAL_API_KEY,
     }),
+    ExternalModule,
+    AuthModule,
   ],
   controllers: [MessageNotificationsController],
   providers: [MessageNotificationsService],
